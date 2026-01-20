@@ -14,6 +14,11 @@ import {
   type ScenarioPresetId
 } from "@/lib/scenarios/schema";
 import { SCENARIO_PRESETS } from "@/components/scenarios/presets";
+import { SectionCard } from "@/components/app/SectionCard";
+import { FormField } from "@/components/app/FormField";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 type Mode = "create" | "edit";
 
@@ -133,139 +138,99 @@ export function ScenarioForm({
   return (
     <div className="space-y-5">
       {mode === "create" ? (
-        <div className="rounded-lg border border-zinc-200 bg-white p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-zinc-900">Start met een preset (optioneel)</p>
-              <p className="text-sm text-zinc-600">
-                Kies een voorbeeld om sneller te beginnen. Je kunt alles daarna aanpassen.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <select
-                className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 sm:w-56"
-                {...presetForm.register("preset", {
-                  onChange: (e) => {
-                    const value = String(e.target.value);
-                    if (!value) return;
-                    applyPreset(value as ScenarioPresetId);
-                  }
-                })}
-              >
-                <option value="">Kies een preset…</option>
-                {Object.entries(SCENARIO_PRESETS).map(([id, preset]) => (
-                  <option key={id} value={id}>
-                    {preset.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <SectionCard
+          title="Start met een preset (optioneel)"
+          description="Kies een voorbeeld om sneller te beginnen. Je kunt alles daarna aanpassen."
+        >
+          <div className="flex items-center gap-2">
+            <select
+              aria-label="Preset kiezen"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-72"
+              {...presetForm.register("preset", {
+                onChange: (e) => {
+                  const value = String(e.target.value);
+                  if (!value) return;
+                  applyPreset(value as ScenarioPresetId);
+                }
+              })}
+            >
+              <option value="">Kies een preset…</option>
+              {Object.entries(SCENARIO_PRESETS).map(([id, preset]) => (
+                <option key={id} value={id}>
+                  {preset.label}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        </SectionCard>
       ) : null}
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <div className="rounded-lg border border-zinc-200 bg-white p-5">
+        <SectionCard>
           <div className="grid gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="name">
-                Naam <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="name"
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
-                placeholder="Bijv. Boze klant: klacht over levering"
-                {...form.register("name")}
-              />
-              {fieldError("name") ? (
-                <p className="text-xs text-red-600">{fieldError("name")}</p>
-              ) : (
-                <p className="text-xs text-zinc-500">Kies een naam die je later snel terugvindt.</p>
-              )}
-            </div>
+            <FormField
+              id="name"
+              label="Naam *"
+              helperText="Kies een naam die je later snel terugvindt."
+              error={fieldError("name")}
+            >
+              <Input id="name" placeholder="Bijv. Boze klant: klacht over levering" {...form.register("name")} />
+            </FormField>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="persona">
-                Persona <span className="text-red-600">*</span>
-              </label>
-              <textarea
+            <FormField
+              id="persona"
+              label="Persona *"
+              helperText="Voorbeeld: “Je bent een boze klant omdat een belofte niet is nagekomen. Je wil een oplossing en duidelijkheid.”"
+              error={fieldError("persona")}
+            >
+              <Textarea
                 id="persona"
                 rows={3}
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
                 placeholder="Wie is de gesprekspartner? Wat is hun houding, doel en context?"
                 {...form.register("persona")}
               />
-              {fieldError("persona") ? (
-                <p className="text-xs text-red-600">{fieldError("persona")}</p>
-              ) : (
-                <p className="text-xs text-zinc-500">
-                  Voorbeeld: “Je bent een boze klant omdat een belofte niet is nagekomen. Je wil een oplossing en
-                  duidelijkheid.”
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="topic">
-                Onderwerp <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="topic"
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
-                placeholder="Bijv. Klacht over levering"
-                {...form.register("topic")}
-              />
-              {fieldError("topic") ? <p className="text-xs text-red-600">{fieldError("topic")}</p> : null}
-            </div>
+            <FormField id="topic" label="Onderwerp *" error={fieldError("topic")}>
+              <Input id="topic" placeholder="Bijv. Klacht over levering" {...form.register("topic")} />
+            </FormField>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="instructions">
-                Instructies <span className="text-red-600">*</span>
-              </label>
-              <textarea
+            <FormField
+              id="instructions"
+              label="Instructies *"
+              helperText="Tip: schrijf concreet. Bijvoorbeeld: “Start met frustratie, reageer op empathie, geef pas na doorvragen de details.”"
+              error={fieldError("instructions")}
+            >
+              <Textarea
                 id="instructions"
                 rows={6}
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
                 placeholder="Hoe moet de gesprekspartner reageren? Welke grenzen/tone of rules gelden?"
                 {...form.register("instructions")}
               />
-              {fieldError("instructions") ? (
-                <p className="text-xs text-red-600">{fieldError("instructions")}</p>
-              ) : (
-                <p className="text-xs text-zinc-500">
-                  Tip: schrijf concreet. Bijvoorbeeld: “Start met frustratie, reageer op empathie, geef pas na
-                  doorvragen de details.”
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="evaluationCriteria">
-                Beoordelingscriteria (optioneel)
-              </label>
-              <textarea
+            <FormField
+              id="evaluationCriteria"
+              label="Beoordelingscriteria (optioneel)"
+              helperText="Dit helpt straks bij feedback/evaluatie. Voor MVP mag dit leeg blijven."
+            >
+              <Textarea
                 id="evaluationCriteria"
                 rows={4}
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
                 placeholder="Waar let je op? Bijv. empathie, structuur, omgaan met bezwaren, next steps…"
                 {...form.register("evaluationCriteria")}
               />
-              <p className="text-xs text-zinc-500">
-                Dit helpt straks bij feedback/evaluatie. Voor MVP mag dit leeg blijven.
-              </p>
-            </div>
+            </FormField>
           </div>
-        </div>
+        </SectionCard>
 
         <div className="flex items-center justify-end gap-3">
-          <button
+          <Button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
             disabled={isPending || !form.formState.isValid}
           >
             {isPending ? "Bezig..." : mode === "create" ? "Opslaan" : "Wijzigingen opslaan"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

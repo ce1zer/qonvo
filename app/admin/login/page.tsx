@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
             </div>
 
             {state.ok === false && state.message ? (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {state.message}
               </div>
             ) : null}

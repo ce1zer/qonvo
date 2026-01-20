@@ -28,7 +28,7 @@ export function ChatThread({
   }, [grouped.length, isTyping]);
 
   return (
-    <div className="flex-1 overflow-auto rounded-lg border border-zinc-200 bg-white p-4">
+    <div className="flex-1 overflow-auto rounded-xl border bg-card p-4 shadow-sm">
       <div className="space-y-3">
         {grouped.map((m) => {
           const isUser = m.role === "user";
@@ -37,11 +37,11 @@ export function ChatThread({
               <div
                 className={[
                   "max-w-[85%] rounded-2xl px-4 py-2 text-sm leading-relaxed",
-                  isUser ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-900"
+                  isUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                 ].join(" ")}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
-                <div className={["mt-1 text-xs", isUser ? "text-white/70" : "text-zinc-500"].join(" ")}>
+                <div className={["mt-1 text-xs", isUser ? "text-primary-foreground/70" : "text-muted-foreground"].join(" ")}>
                   {formatTime(m.createdAt)}
                   {m.status === "sending" ? " · verzenden..." : null}
                   {m.status === "failed" ? " · mislukt" : null}
@@ -53,8 +53,8 @@ export function ChatThread({
 
         {isTyping ? (
           <div className="flex justify-start">
-            <div className="rounded-2xl bg-zinc-100 px-4 py-2 text-sm text-zinc-700">
-              <span className="text-zinc-500">AI typt…</span>
+            <div className="rounded-2xl bg-muted px-4 py-2 text-sm text-foreground">
+              <span className="text-muted-foreground">AI typt…</span>
             </div>
           </div>
         ) : null}

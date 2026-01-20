@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { initialCreateConversationState, type CreateConversationState } from "@/actions/conversations/types";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export type ScenarioOption = {
   id: string;
@@ -91,179 +96,126 @@ export function StartConversationWizard({
     });
   }
 
-  const triggerClass =
-    triggerVariant === "primary"
-      ? "inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-      : "inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50";
-
   return (
     <>
-      <button type="button" className={triggerClass} onClick={() => setOpen(true)}>
+      <Button variant={triggerVariant === "primary" ? "default" : "outline"} onClick={() => setOpen(true)}>
         Start gesprek
-      </button>
+      </Button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-2xl overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm"
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-5 py-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-zinc-900">Start gesprek</p>
-                <p className="text-sm text-zinc-600">
-                  {step === 1 ? "Kies eerst een scenario." : "Stel optioneel een doel in."}
+      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
+        <DialogContent
+          className="sm:max-w-2xl"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Start gesprek</DialogTitle>
+            <p className="text-sm text-muted-foreground">{step === 1 ? "Kies eerst een scenario." : "Stel optioneel een doel in."}</p>
+          </DialogHeader>
+
+          {scenarios.length === 0 ? (
+            <div className="space-y-4 text-center">
+              <p className="text-base font-semibold">Je hebt nog geen scenario’s</p>
+              <p className="text-sm text-muted-foreground">
+                Maak eerst een scenario. Daarna kun je een gesprek starten en oefenen.
+              </p>
+              <div className="flex justify-center gap-3">
+                <Button asChild>
+                  <Link href={`/bedrijf/${slug}/scenarios/nieuw`} onClick={() => setOpen(false)}>
+                    Maak je eerste scenario
+                  </Link>
+                </Button>
+                <Button type="button" variant="outline" onClick={close}>
+                  Annuleren
+                </Button>
+              </div>
+            </div>
+          ) : step === 1 ? (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Scenario kiezen</p>
+                  <p className="text-sm text-muted-foreground">Zoek op naam of onderwerp.</p>
+                </div>
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="sm:w-80"
+                  placeholder="Bijv. boze klant…"
+                />
+              </div>
+
+              <div className="max-h-72 overflow-auto rounded-md border">
+                {filtered.map((s) => {
+                  const selected = scenarioId === s.id;
+                  return (
+                    <Button
+                      key={s.id}
+                      type="button"
+                      variant="ghost"
+                      className={["h-auto w-full justify-start rounded-none px-4 py-3 text-left", selected ? "bg-muted" : ""].join(" ")}
+                      onClick={() => setScenarioId(s.id)}
+                    >
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">{s.topic}</p>
+                      </div>
+                    </Button>
+                  );
+                })}
+                {filtered.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Geen scenario’s gevonden. Pas je zoekterm aan.
+                  </div>
+                ) : null}
+              </div>
+
+              {state.fieldErrors?.scenarioId ? (
+                <p className="text-sm text-destructive">{state.fieldErrors.scenarioId}</p>
+              ) : null}
+
+              <DialogFooter className="sm:justify-end">
+                <Button type="button" variant="outline" onClick={close}>
+                  Annuleren
+                </Button>
+                <Button type="button" disabled={!scenarioId} onClick={() => setStep(2)}>
+                  Verder
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="goal">Doel (optioneel)</Label>
+                <Textarea
+                  id="goal"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  rows={3}
+                  placeholder="Bijv. De klant kalmeren en een concrete oplossing afspreken."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Tip: schrijf één zin. Dit helpt om het gesprek doelgericht te houden.
                 </p>
               </div>
-              <button
-                type="button"
-                className="rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
-                onClick={close}
-              >
-                Sluiten
-              </button>
+
+              <DialogFooter className="sm:justify-between">
+                <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={isPending}>
+                  Terug
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" onClick={close} disabled={isPending}>
+                    Annuleren
+                  </Button>
+                  <Button type="button" onClick={submit} disabled={isPending}>
+                    {isPending ? "Bezig..." : "Gesprek starten"}
+                  </Button>
+                </div>
+              </DialogFooter>
             </div>
-
-            <div className="px-5 py-5">
-              {scenarios.length === 0 ? (
-                <div className="space-y-4 text-center">
-                  <p className="text-base font-semibold text-zinc-900">Je hebt nog geen scenario’s</p>
-                  <p className="text-sm text-zinc-600">
-                    Maak eerst een scenario. Daarna kun je een gesprek starten en oefenen.
-                  </p>
-                  <div className="flex justify-center gap-3">
-                    <Link
-                      href={`/bedrijf/${slug}/scenarios/nieuw`}
-                      className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                      onClick={() => setOpen(false)}
-                    >
-                      Maak je eerste scenario
-                    </Link>
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                      onClick={close}
-                    >
-                      Annuleren
-                    </button>
-                  </div>
-                </div>
-              ) : step === 1 ? (
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-zinc-900">Scenario kiezen</p>
-                      <p className="text-sm text-zinc-600">Zoek op naam of onderwerp.</p>
-                    </div>
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400 sm:w-80"
-                      placeholder="Bijv. boze klant…"
-                    />
-                  </div>
-
-                  <div className="max-h-72 overflow-auto rounded-md border border-zinc-200">
-                    {filtered.map((s) => {
-                      const selected = scenarioId === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className={[
-                            "w-full px-4 py-3 text-left hover:bg-zinc-50",
-                            selected ? "bg-zinc-50" : ""
-                          ].join(" ")}
-                          onClick={() => setScenarioId(s.id)}
-                        >
-                          <p className="text-sm font-medium text-zinc-900">{s.name}</p>
-                          <p className="text-xs text-zinc-600">{s.topic}</p>
-                        </button>
-                      );
-                    })}
-                    {filtered.length === 0 ? (
-                      <div className="px-4 py-10 text-center text-sm text-zinc-600">
-                        Geen scenario’s gevonden. Pas je zoekterm aan.
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {state.fieldErrors?.scenarioId ? (
-                    <p className="text-sm text-red-600">{state.fieldErrors.scenarioId}</p>
-                  ) : null}
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                      onClick={close}
-                    >
-                      Annuleren
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-                      disabled={!scenarioId}
-                      onClick={() => setStep(2)}
-                    >
-                      Verder
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-zinc-900" htmlFor="goal">
-                      Doel (optioneel)
-                    </label>
-                    <textarea
-                      id="goal"
-                      value={goal}
-                      onChange={(e) => setGoal(e.target.value)}
-                      rows={3}
-                      className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
-                      placeholder="Bijv. De klant kalmeren en een concrete oplossing afspreken."
-                    />
-                    <p className="text-xs text-zinc-500">
-                      Tip: schrijf één zin. Dit helpt om het gesprek doelgericht te houden.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                      onClick={() => setStep(1)}
-                      disabled={isPending}
-                    >
-                      Terug
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                        onClick={close}
-                        disabled={isPending}
-                      >
-                        Annuleren
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-                        onClick={submit}
-                        disabled={isPending}
-                      >
-                        {isPending ? "Bezig..." : "Gesprek starten"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

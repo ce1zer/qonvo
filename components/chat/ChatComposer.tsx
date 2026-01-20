@@ -2,6 +2,10 @@
 
 import { useRef } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+
 export function ChatComposer({
   value,
   onChange,
@@ -20,12 +24,10 @@ export function ChatComposer({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4">
+    <div className="rounded-xl border bg-card p-4 shadow-sm">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-900" htmlFor="composer">
-          Bericht
-        </label>
-        <textarea
+        <Label htmlFor="composer">Bericht</Label>
+        <Textarea
           id="composer"
           ref={textareaRef}
           value={value}
@@ -33,20 +35,19 @@ export function ChatComposer({
           onKeyDown={onKeyDown}
           rows={3}
           placeholder="Typ je bericht… (Enter = verzenden, Shift+Enter = nieuwe regel)"
-          className="w-full resize-none rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400 disabled:bg-zinc-50"
+          className="resize-none"
           disabled={disabled}
         />
 
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-zinc-500">{helperText}</p>
-          <button
+          <p className="text-xs text-muted-foreground">{helperText}</p>
+          <Button
             type="button"
-            className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
             onClick={onSubmit}
             disabled={disabled || !value.trim()}
           >
             {disabled ? "Bezig..." : "Versturen"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
