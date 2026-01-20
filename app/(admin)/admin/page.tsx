@@ -77,11 +77,11 @@ export default async function AdminPage({
       <AdminTabs active={active} />
 
       {active === "companies" ? (
-        <SectionCard>
+        <SectionCard contentClassName="p-0">
           <CompaniesTable companies={companyRows} />
         </SectionCard>
       ) : (
-        <SectionCard>
+        <SectionCard contentClassName="p-0">
           <UsersTable users={userRows} />
         </SectionCard>
       )}

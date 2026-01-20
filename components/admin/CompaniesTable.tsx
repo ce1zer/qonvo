@@ -111,122 +111,120 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-background">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Bedrijf</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead className="text-right">Credits</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Acties</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Bedrijf</TableHead>
+          <TableHead>Slug</TableHead>
+          <TableHead className="text-right">Credits</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Acties</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {companies.map((c) => (
+          <TableRow key={c.id}>
+            <TableCell className="min-w-0">
+              <p className="truncate font-medium">{c.name}</p>
+              <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString("nl-NL")}</p>
+            </TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
+            <TableCell className="text-right font-medium">{c.credits_balance}</TableCell>
+            <TableCell>
+              {c.is_disabled ? (
+                <Badge variant="destructive">Gedeactiveerd</Badge>
+              ) : (
+                <Badge variant="secondary">Actief</Badge>
+              )}
+            </TableCell>
+            <TableCell className="text-right">
+              <Dialog open={creditsOpenForId === c.id} onOpenChange={(open) => setCreditsOpenForId(open ? c.id : null)}>
+                <AlertDialog>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={isPending}>
+                        Beheer
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Bedrijf</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          Credits aanpassen…
+                        </DropdownMenuItem>
+                      </DialogTrigger>
+                      <DropdownMenuSeparator />
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          className={c.is_disabled ? "" : "text-destructive focus:text-destructive"}
+                        >
+                          {c.is_disabled ? "Activeer bedrijf…" : "Deactiveer bedrijf…"}
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Credits aanpassen</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">Vul het aantal credits in en kies toevoegen of aftrekken.</p>
+                      <Input
+                        value={amountById[c.id] ?? ""}
+                        onChange={(e) => setAmount(c.id, e.target.value)}
+                        placeholder="Aantal"
+                        inputMode="numeric"
+                        disabled={isPending}
+                      />
+                    </div>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onAdjust(c.id, -1)}
+                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
+                      >
+                        Aftrekken
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => onAdjust(c.id, 1)}
+                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
+                      >
+                        Toevoegen
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{c.is_disabled ? "Bedrijf activeren?" : "Bedrijf deactiveren?"}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {c.is_disabled
+                          ? "Gebruikers kunnen weer inloggen en de tenant gebruiken."
+                          : "Gebruikers kunnen daarna niet meer inloggen en alle tenant routes worden geblokkeerd."}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isPending}>Annuleren</AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={isPending}
+                        onClick={() => onToggleDisabled(c.id, !c.is_disabled)}
+                      >
+                        {c.is_disabled ? "Activeer" : "Deactiveer"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </Dialog>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {companies.map((c) => (
-            <TableRow key={c.id}>
-              <TableCell className="min-w-0">
-                <p className="truncate font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString("nl-NL")}</p>
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
-              <TableCell className="text-right font-medium">{c.credits_balance}</TableCell>
-              <TableCell>
-                {c.is_disabled ? (
-                  <Badge variant="destructive">Gedeactiveerd</Badge>
-                ) : (
-                  <Badge variant="secondary">Actief</Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <Dialog open={creditsOpenForId === c.id} onOpenChange={(open) => setCreditsOpenForId(open ? c.id : null)}>
-                  <AlertDialog>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" disabled={isPending}>
-                          Beheer
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>Bedrijf</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DialogTrigger asChild>
-                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            Credits aanpassen…
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DropdownMenuSeparator />
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className={c.is_disabled ? "" : "text-destructive focus:text-destructive"}
-                          >
-                            {c.is_disabled ? "Activeer bedrijf…" : "Deactiveer bedrijf…"}
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Credits aanpassen</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Vul het aantal credits in en kies toevoegen of aftrekken.</p>
-                        <Input
-                          value={amountById[c.id] ?? ""}
-                          onChange={(e) => setAmount(c.id, e.target.value)}
-                          placeholder="Aantal"
-                          inputMode="numeric"
-                          disabled={isPending}
-                        />
-                      </div>
-                      <DialogFooter className="gap-2 sm:gap-0">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => onAdjust(c.id, -1)}
-                          disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
-                        >
-                          Aftrekken
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => onAdjust(c.id, 1)}
-                          disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
-                        >
-                          Toevoegen
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{c.is_disabled ? "Bedrijf activeren?" : "Bedrijf deactiveren?"}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {c.is_disabled
-                            ? "Gebruikers kunnen weer inloggen en de tenant gebruiken."
-                            : "Gebruikers kunnen daarna niet meer inloggen en alle tenant routes worden geblokkeerd."}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isPending}>Annuleren</AlertDialogCancel>
-                        <AlertDialogAction
-                          disabled={isPending}
-                          onClick={() => onToggleDisabled(c.id, !c.is_disabled)}
-                        >
-                          {c.is_disabled ? "Activeer" : "Deactiveer"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </Dialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 

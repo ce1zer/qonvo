@@ -72,50 +72,48 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg border bg-background">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>E-mail</TableHead>
-              <TableHead>User ID</TableHead>
-              <TableHead>Bedrijf</TableHead>
-              <TableHead className="text-right">Rol</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>E-mail</TableHead>
+            <TableHead>User ID</TableHead>
+            <TableHead>Bedrijf</TableHead>
+            <TableHead className="text-right">Rol</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((u) => (
+            <TableRow key={u.user_id}>
+              <TableCell className="min-w-0 truncate">{u.email}</TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">{u.user_id}</TableCell>
+              <TableCell className="text-muted-foreground">{u.company_slug ?? "—"}</TableCell>
+              <TableCell className="text-right">
+                {u.role === "platform_admin" ? (
+                  <Badge variant="secondary">Platform admin</Badge>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={isPending}>
+                        {u.role === "member" ? "Lid" : "Bedrijfsbeheerder"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Rol</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "member")}>
+                        Lid
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "company_admin")}>
+                        Bedrijfsbeheerder
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((u) => (
-              <TableRow key={u.user_id}>
-                <TableCell className="min-w-0 truncate">{u.email}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{u.user_id}</TableCell>
-                <TableCell className="text-muted-foreground">{u.company_slug ?? "—"}</TableCell>
-                <TableCell className="text-right">
-                  {u.role === "platform_admin" ? (
-                    <Badge variant="secondary">Platform admin</Badge>
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" disabled={isPending}>
-                          {u.role === "member" ? "Lid" : "Bedrijfsbeheerder"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>Rol</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "member")}>
-                          Lid
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "company_admin")}>
-                          Bedrijfsbeheerder
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          ))}
+        </TableBody>
+      </Table>
 
       <AlertDialog open={Boolean(confirm)} onOpenChange={(open) => setConfirm(open ? confirm : null)}>
         <AlertDialogContent>

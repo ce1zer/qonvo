@@ -10,13 +10,15 @@ export function SectionCard({
   description,
   actions,
   children,
-  className
+  className,
+  contentClassName
 }: {
   title?: string;
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  contentClassName?: string;
 }) {
   return (
     <Card className={cn("shadow-sm", className)}>
@@ -31,7 +33,7 @@ export function SectionCard({
           </div>
         </CardHeader>
       ) : null}
-      <CardContent className="space-y-4">{children}</CardContent>
+      <CardContent className={cn("space-y-4", contentClassName)}>{children}</CardContent>
     </Card>
   );
 }

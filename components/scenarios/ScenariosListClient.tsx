@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/app/SectionCard";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export type ScenarioListItem = {
   id: string;
@@ -118,44 +119,46 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
         />
       </SectionCard>
 
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-        <div className="grid grid-cols-12 gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-          <div className="col-span-5">Naam</div>
-          <div className="col-span-4">Onderwerp</div>
-          <div className="col-span-2 text-right">Bijgewerkt</div>
-          <div className="col-span-1 text-right">Acties</div>
-        </div>
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[45%]">Naam</TableHead>
+              <TableHead className="w-[35%]">Onderwerp</TableHead>
+              <TableHead className="w-[15%] text-right">Bijgewerkt</TableHead>
+              <TableHead className="w-[5%] text-right">Acties</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((s) => (
+              <TableRow key={s.id}>
+                <TableCell className="min-w-0">
+                  <Link href={`/bedrijf/${slug}/scenarios/${s.id}`} className="block min-w-0">
+                    <p className="truncate font-medium">{s.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{s.persona}</p>
+                  </Link>
+                </TableCell>
+                <TableCell className="min-w-0 truncate text-muted-foreground">{s.topic}</TableCell>
+                <TableCell className="text-right text-muted-foreground">{formatDate(s.updated_at)}</TableCell>
+                <TableCell className="text-right">
+                  {canManageEmbed ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => openEmbedForScenario(s.id)}>
+                      Embedcode
+                    </Button>
+                  ) : null}
+                </TableCell>
+              </TableRow>
+            ))}
 
-        {items.map((s) => (
-          <div key={s.id} className="grid grid-cols-12 gap-2 px-4 py-3 text-sm hover:bg-zinc-50">
-            <div className="col-span-5 min-w-0">
-              <Link href={`/bedrijf/${slug}/scenarios/${s.id}`} className="block min-w-0">
-                <p className="truncate font-medium text-zinc-900">{s.name}</p>
-                <p className="truncate text-xs text-zinc-600">{s.persona}</p>
-              </Link>
-            </div>
-            <div className="col-span-4 min-w-0 truncate text-zinc-700">{s.topic}</div>
-            <div className="col-span-2 text-right text-zinc-600">{formatDate(s.updated_at)}</div>
-            <div className="col-span-1 flex justify-end">
-              {canManageEmbed ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEmbedForScenario(s.id)}
-                >
-                  Embedcode
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        ))}
-
-        {items.length === 0 ? (
-          <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-            Geen scenario’s gevonden. Pas je zoekterm aan.
-          </div>
-        ) : null}
+            {items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
+                  Geen scenario’s gevonden. Pas je zoekterm aan.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog
