@@ -41,6 +41,7 @@ export default async function TenantShellLayout({
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("user_id, company_id, role")
+    .eq("user_id", userData.user.id)
     .maybeSingle();
 
   if (profileError || !profile?.company_id) {
