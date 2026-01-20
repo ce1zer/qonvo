@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { initialCreateConversationState, type CreateConversationState } from "@/actions/conversations/types";
@@ -23,6 +24,7 @@ export function StartConversationWizard({
   scenarios: ScenarioOption[];
   triggerVariant?: "primary" | "secondary";
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>(1);
   const [query, setQuery] = useState("");
@@ -36,12 +38,6 @@ export function StartConversationWizard({
     if (!state.message) return;
     if (state.ok) toast.success(state.message);
     else toast.error(state.message);
-  }, [state]);
-
-  useEffect(() => {
-    if (state.ok && state.redirectTo) {
-      window.location.assign(state.redirectTo);
-    }
   }, [state]);
 
   const filtered = useMemo(() => {
@@ -87,6 +83,11 @@ export function StartConversationWizard({
       }
 
       setState(json);
+      if (json.ok && typeof json.redirectTo === "string" && json.redirectTo) {
+        // Safari: prefer immediate router navigation over window.location.assign in an effect.
+        close();
+        router.push(json.redirectTo);
+      }
     });
   }
 
