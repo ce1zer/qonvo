@@ -1,14 +1,12 @@
 import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/app/PageHeader";
 
 export default async function GesprekkenPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   return (
     <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Gesprekken</h1>
-        <p className="text-sm text-zinc-600">Hier vind je alle gesprekken binnen je bedrijf.</p>
-      </header>
+      <PageHeader title="Gesprekken" description="Hier vind je alle gesprekken binnen je bedrijf." />
 
       <EmptyState
         title="Nog geen gesprekken"

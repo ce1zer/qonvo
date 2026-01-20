@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ScenarioForm } from "@/components/scenarios/ScenarioForm";
 import { DeleteScenarioSection } from "@/components/scenarios/DeleteScenarioDialog";
+import { PageHeader } from "@/components/app/PageHeader";
+import { Button } from "@/components/ui/button";
 
 export default async function EditScenarioPage({
   params
@@ -23,19 +25,15 @@ export default async function EditScenarioPage({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Scenario bewerken</h1>
-          <p className="text-sm text-zinc-600">Pas je scenario aan en sla op. Verwijderen kan onderaan.</p>
-        </div>
-
-        <Link
-          href={`/bedrijf/${slug}/scenarios`}
-          className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-        >
-          Terug naar lijst
-        </Link>
-      </header>
+      <PageHeader
+        title="Scenario bewerken"
+        description="Pas je scenario aan en sla op. Verwijderen kan onderaan."
+        actions={
+          <Button asChild variant="outline">
+            <Link href={`/bedrijf/${slug}/scenarios`}>Terug naar lijst</Link>
+          </Button>
+        }
+      />
 
       <ScenarioForm
         mode="edit"
