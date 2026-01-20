@@ -26,6 +26,7 @@ export function DeleteScenarioSection({ slug, scenarioId }: { slug: string; scen
       const res = await fetch("/api/scenarios/delete", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ slug, scenarioId })
       }).catch(() => null);
 

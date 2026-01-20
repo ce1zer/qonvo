@@ -73,6 +73,7 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
     const res = await fetch("/api/embed-tokens/get-or-create", {
       method: "POST",
       headers: { "content-type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ scenarioId })
     }).catch(() => null);
 

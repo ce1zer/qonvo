@@ -67,6 +67,7 @@ export function StartConversationWizard({
       const res = await fetch("/api/conversations/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           slug,
           scenarioId,

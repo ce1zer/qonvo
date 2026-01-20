@@ -48,6 +48,7 @@ export function ChatPanel({
     const res = await fetch("/api/chat/send", {
       method: "POST",
       headers: { "content-type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ conversationId, userMessage })
     }).catch(() => null);
 

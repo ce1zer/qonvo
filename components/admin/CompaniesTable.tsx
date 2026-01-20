@@ -74,6 +74,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
       const res = await fetch("/api/admin/adjust-credits", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ companyId, amount: delta, reason: "admin_adjustment" })
       }).catch(() => null);
 
@@ -94,6 +95,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
       const res = await fetch("/api/admin/set-company-disabled", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ companyId, isDisabled: next })
       }).catch(() => null);
 

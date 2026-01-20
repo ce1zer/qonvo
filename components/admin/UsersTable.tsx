@@ -54,6 +54,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
       const res = await fetch("/api/admin/set-user-role", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ userId, role: next })
       }).catch(() => null);
 
