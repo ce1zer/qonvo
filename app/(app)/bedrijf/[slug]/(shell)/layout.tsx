@@ -4,9 +4,10 @@ import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { TenantProvider, type TenantCompany, type TenantProfile } from "@/components/tenant/TenantContext";
 import { Breadcrumbs } from "@/components/tenant/Breadcrumbs";
-import { SidebarNav } from "@/components/tenant/SidebarNav";
 import { TenantCreditsBadge } from "@/components/tenant/TenantCreditsBadge";
 import { AccountMenu } from "@/components/tenant/AccountMenu";
+import { AppShell } from "@/components/app/AppShell";
+import type { NavItem } from "@/components/app/types";
 
 function normalizeSlug(slug: string) {
   return slug.trim().toLowerCase();
@@ -86,42 +87,28 @@ export default async function TenantShellLayout({
   };
 
   const base = `/bedrijf/${company.slug}`;
+  const navItems: NavItem[] = [
+    { href: `${base}/dashboard`, label: "Dashboard" },
+    { href: `${base}/scenarios`, label: "Scenario’s" },
+    { href: `${base}/gesprekken`, label: "Gesprekken" }
+  ];
 
   return (
     <TenantProvider value={ctxValue}>
-      <div className="min-h-screen bg-zinc-50">
-        <div className="mx-auto flex min-h-screen max-w-6xl">
-          <aside className="hidden w-64 flex-col gap-6 border-r border-zinc-200 bg-white p-5 md:flex">
-            <div className="space-y-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Bedrijf</p>
-              <p className="text-sm font-semibold text-zinc-900">{company.name}</p>
-            </div>
-
-            <nav className="space-y-1 text-sm">
-              <SidebarNav baseHref={base} />
-            </nav>
-
-            <div className="mt-auto text-xs text-zinc-500">Qonvo</div>
-          </aside>
-
-          <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur">
-              <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-                <div className="min-w-0">
-                  <Breadcrumbs />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <TenantCreditsBadge />
-                  <AccountMenu />
-                </div>
-              </div>
-            </header>
-
-            <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
-          </div>
-        </div>
-      </div>
+      <AppShell
+        sidebarSubtitle="Bedrijf"
+        sidebarTitle={company.name}
+        navItems={navItems}
+        topbarLeft={<Breadcrumbs />}
+        topbarRight={
+          <>
+            <TenantCreditsBadge />
+            <AccountMenu />
+          </>
+        }
+      >
+        {children}
+      </AppShell>
     </TenantProvider>
   );
 }
