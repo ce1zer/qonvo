@@ -5,6 +5,17 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { useTenant } from "@/components/tenant/TenantContext";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export type ScenarioListItem = {
   id: string;
@@ -102,10 +113,10 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
             <p className="text-sm font-medium text-zinc-900">Zoeken</p>
             <p className="text-sm text-zinc-600">Zoek op naam, onderwerp of persona.</p>
           </div>
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400 sm:w-80"
+            className="sm:w-80"
             placeholder="Bijv. boze klant, feedback, winkel…"
           />
         </div>
@@ -131,13 +142,14 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
             <div className="col-span-2 text-right text-zinc-600">{formatDate(s.updated_at)}</div>
             <div className="col-span-1 flex justify-end">
               {canManageEmbed ? (
-                <button
+                <Button
                   type="button"
-                  className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs font-medium text-zinc-900 hover:bg-zinc-50"
+                  variant="outline"
+                  size="sm"
                   onClick={() => openEmbedForScenario(s.id)}
                 >
                   Embedcode
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -150,71 +162,51 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
         ) : null}
       </div>
 
-      {embedOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-lg bg-white shadow-lg">
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-4">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-zinc-900">Embedcode</p>
-                <p className="text-sm text-zinc-600">Plak deze iframe in je website of leeromgeving.</p>
-              </div>
-              <button
-                type="button"
-                className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                onClick={() => {
-                  setEmbedOpen(false);
-                  setEmbedScenarioId(null);
-                  setEmbedToken(null);
-                  setEmbedLoading(false);
-                }}
-              >
-                Sluiten
-              </button>
-            </div>
+      <Dialog
+        open={embedOpen}
+        onOpenChange={(open) => {
+          setEmbedOpen(open);
+          if (!open) {
+            setEmbedScenarioId(null);
+            setEmbedToken(null);
+            setEmbedLoading(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Embedcode</DialogTitle>
+            <DialogDescription>Plak deze iframe in je website of leeromgeving.</DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-3 p-4">
-              {embedLoading ? (
-                <p className="text-sm text-zinc-600">Embedcode ophalen…</p>
-              ) : embedToken ? (
-                <>
-                  <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
-                    <pre className="overflow-auto whitespace-pre-wrap text-xs text-zinc-900">{embedSnippet}</pre>
-                  </div>
-                  <div className="flex items-center justify-end gap-2">
-                    <Link
-                      href={`/embed/${embedToken}`}
-                      className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                      target="_blank"
-                    >
-                      Voorbeeld openen
-                    </Link>
-                    <button
-                      type="button"
-                      className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                      onClick={copyEmbed}
-                    >
-                      Kopiëren
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-zinc-600">Geen embedcode beschikbaar.</p>
-                  {embedScenarioId ? (
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                      onClick={() => openEmbedForScenario(embedScenarioId)}
-                    >
-                      Opnieuw proberen
-                    </button>
-                  ) : null}
-                </div>
-              )}
+          {embedLoading ? (
+            <p className="text-sm text-muted-foreground">Embedcode ophalen…</p>
+          ) : embedToken ? (
+            <div className="space-y-3">
+              <Textarea readOnly value={embedSnippet} className="min-h-32 font-mono text-xs" />
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button asChild variant="outline">
+                  <Link href={`/embed/${embedToken}`} target="_blank">
+                    Voorbeeld openen
+                  </Link>
+                </Button>
+                <Button onClick={copyEmbed}>Kopiëren</Button>
+              </DialogFooter>
             </div>
-          </div>
-        </div>
-      ) : null}
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Geen embedcode beschikbaar.</p>
+              {embedScenarioId ? (
+                <div>
+                  <Button onClick={() => openEmbedForScenario(embedScenarioId)} disabled={embedLoading}>
+                    Opnieuw proberen
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

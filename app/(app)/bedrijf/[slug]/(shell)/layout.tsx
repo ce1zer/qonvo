@@ -6,7 +6,7 @@ import { TenantProvider, type TenantCompany, type TenantProfile } from "@/compon
 import { Breadcrumbs } from "@/components/tenant/Breadcrumbs";
 import { SidebarNav } from "@/components/tenant/SidebarNav";
 import { TenantCreditsBadge } from "@/components/tenant/TenantCreditsBadge";
-import { logoutAction } from "@/actions/auth/logout";
+import { AccountMenu } from "@/components/tenant/AccountMenu";
 
 function normalizeSlug(slug: string) {
   return slug.trim().toLowerCase();
@@ -112,22 +112,7 @@ export default async function TenantShellLayout({
 
                 <div className="flex items-center gap-3">
                   <TenantCreditsBadge />
-
-                  <details className="relative">
-                    <summary className="cursor-pointer list-none rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50">
-                      Account
-                    </summary>
-                    <div className="absolute right-0 mt-2 w-44 rounded-md border border-zinc-200 bg-white p-1 shadow-sm">
-                      <form action={logoutAction}>
-                        <button
-                          type="submit"
-                          className="w-full rounded-md px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"
-                        >
-                          Uitloggen
-                        </button>
-                      </form>
-                    </div>
-                  </details>
+                  <AccountMenu />
                 </div>
               </div>
             </header>

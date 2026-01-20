@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
+
 export function SidebarNav({
   baseHref
 }: {
@@ -21,18 +23,14 @@ export function SidebarNav({
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
-          <Link
+          <Button
             key={item.href}
-            href={item.href}
-            className={[
-              "block rounded-md px-3 py-2",
-              active
-                ? "bg-zinc-100 text-zinc-900"
-                : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"
-            ].join(" ")}
+            asChild
+            variant={active ? "secondary" : "ghost"}
+            className="w-full justify-start"
           >
-            {item.label}
-          </Link>
+            <Link href={item.href}>{item.label}</Link>
+          </Button>
         );
       })}
     </nav>

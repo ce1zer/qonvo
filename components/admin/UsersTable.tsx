@@ -1,9 +1,30 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { setUserRole } from "@/actions/admin/setUserRole";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 export type AdminUserRow = {
   user_id: string;
@@ -14,6 +35,10 @@ export type AdminUserRow = {
 
 export function UsersTable({ users }: { users: AdminUserRow[] }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const [confirm, setConfirm] = useState<null | { userId: string; current: AdminUserRow["role"]; next: "member" | "company_admin" }>(
+    null
+  );
 
   function onChangeRole(userId: string, current: AdminUserRow["role"], next: "member" | "company_admin") {
     if (current === "platform_admin") {
@@ -21,53 +46,98 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
       return;
     }
 
-    const ok = confirm(`Rol wijzigen naar “${next === "member" ? "Lid" : "Bedrijfsbeheerder"}”?`);
-    if (!ok) return;
+    setConfirm({ userId, current, next });
+  }
 
+  function doChangeRole(userId: string, next: "member" | "company_admin") {
     startTransition(async () => {
-      const res = await setUserRole(userId, next);
-      if (!res.ok) toast.error(res.message);
-      else {
-        toast.success(res.message);
-        window.location.reload();
+      const res = await fetch("/api/admin/set-user-role", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userId, role: next })
+      }).catch(() => null);
+
+      const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      if (!res || !res.ok) {
+        toast.error(json?.message ?? "Rol wijzigen is niet gelukt. Probeer het opnieuw.");
+        return;
       }
+
+      toast.success(json?.message ?? "Rol bijgewerkt.");
+      setConfirm(null);
+      router.refresh();
     });
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-      <div className="grid grid-cols-12 gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-        <div className="col-span-4">E-mail</div>
-        <div className="col-span-4">User ID</div>
-        <div className="col-span-2">Bedrijf</div>
-        <div className="col-span-2">Rol</div>
+    <>
+      <div className="overflow-hidden rounded-lg border bg-background">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>E-mail</TableHead>
+              <TableHead>User ID</TableHead>
+              <TableHead>Bedrijf</TableHead>
+              <TableHead className="text-right">Rol</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((u) => (
+              <TableRow key={u.user_id}>
+                <TableCell className="min-w-0 truncate">{u.email}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{u.user_id}</TableCell>
+                <TableCell className="text-muted-foreground">{u.company_slug ?? "—"}</TableCell>
+                <TableCell className="text-right">
+                  {u.role === "platform_admin" ? (
+                    <Badge variant="secondary">Platform admin</Badge>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" disabled={isPending}>
+                          {u.role === "member" ? "Lid" : "Bedrijfsbeheerder"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Rol</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "member")}>
+                          Lid
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "company_admin")}>
+                          Bedrijfsbeheerder
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
-      {users.map((u) => (
-        <div key={u.user_id} className="grid grid-cols-12 gap-2 px-4 py-3 text-sm">
-          <div className="col-span-4 min-w-0 truncate text-zinc-900">{u.email}</div>
-          <div className="col-span-4 font-mono text-xs text-zinc-700">{u.user_id}</div>
-          <div className="col-span-2 text-zinc-700">{u.company_slug ?? "—"}</div>
-          <div className="col-span-2">
-            {u.role === "platform_admin" ? (
-              <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800">
-                Platform admin
-              </span>
-            ) : (
-              <select
-                className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm"
-                defaultValue={u.role}
-                disabled={isPending}
-                onChange={(e) => onChangeRole(u.user_id, u.role, e.target.value as "member" | "company_admin")}
-              >
-                <option value="member">Lid</option>
-                <option value="company_admin">Bedrijfsbeheerder</option>
-              </select>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
+      <AlertDialog open={Boolean(confirm)} onOpenChange={(open) => setConfirm(open ? confirm : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rol wijzigen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Wijzig rol naar “{confirm?.next === "member" ? "Lid" : "Bedrijfsbeheerder"}”.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending} onClick={() => setConfirm(null)}>
+              Annuleren
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isPending || !confirm}
+              onClick={() => confirm && doChangeRole(confirm.userId, confirm.next)}
+            >
+              Bevestigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
