@@ -5,6 +5,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { CompaniesTable, type AdminCompanyRow } from "@/components/admin/CompaniesTable";
 import { UsersTable, type AdminUserRow } from "@/components/admin/UsersTable";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SectionCard } from "@/components/app/SectionCard";
 
 export default async function AdminPage({
   searchParams
@@ -68,12 +70,20 @@ export default async function AdminPage({
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Admin"
+        description={active === "companies" ? "Beheer bedrijven en credits." : "Beheer gebruikers en rollen."}
+      />
       <AdminTabs active={active} />
 
       {active === "companies" ? (
-        <CompaniesTable companies={companyRows} />
+        <SectionCard>
+          <CompaniesTable companies={companyRows} />
+        </SectionCard>
       ) : (
-        <UsersTable users={userRows} />
+        <SectionCard>
+          <UsersTable users={userRows} />
+        </SectionCard>
       )}
     </div>
   );

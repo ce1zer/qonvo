@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/EmptyState";
 import { ScenariosListClient, type ScenarioListItem } from "@/components/scenarios/ScenariosListClient";
 import { StartConversationWizard, type ScenarioOption } from "@/components/conversations/StartConversationWizard";
+import { PageHeader } from "@/components/app/PageHeader";
+import { Button } from "@/components/ui/button";
 
 export default async function ScenariosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -30,24 +32,18 @@ export default async function ScenariosPage({ params }: { params: Promise<{ slug
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Scenario’s</h1>
-          <p className="text-sm text-zinc-600">
-            Maak scenario’s die trainers direct kunnen gebruiken. Houd het kort en concreet.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <StartConversationWizard slug={slug} scenarios={scenarioOptions} triggerVariant="secondary" />
-          <Link
-            href={`/bedrijf/${slug}/scenarios/nieuw`}
-            className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-          >
-            Nieuw scenario
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+        title="Scenario’s"
+        description="Maak scenario’s die trainers direct kunnen gebruiken. Houd het kort en concreet."
+        actions={
+          <>
+            <StartConversationWizard slug={slug} scenarios={scenarioOptions} triggerVariant="secondary" />
+            <Button asChild>
+              <Link href={`/bedrijf/${slug}/scenarios/nieuw`}>Nieuw scenario</Link>
+            </Button>
+          </>
+        }
+      />
 
       {error ? (
         <EmptyState
