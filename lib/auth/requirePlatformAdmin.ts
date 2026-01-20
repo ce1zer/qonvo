@@ -13,7 +13,7 @@ export async function requirePlatformAdmin(redirectTo: string = "/admin") {
 
   const { data: profile, error } = await supabase.from("profiles").select("role").maybeSingle();
   if (error || !profile || profile.role !== "platform_admin") {
-    redirect("/");
+    redirect("/admin/no-access");
   }
 
   return { supabase, userId: userData.user.id };

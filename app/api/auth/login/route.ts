@@ -37,7 +37,31 @@ export async function POST(request: NextRequest) {
     return res;
   }
 
-  const { data: profile } = await supabase.from("profiles").select("company_id").eq("user_id", userId).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("company_id, role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const requestedRedirect = safeInternalRedirect(parsed.data.redirectTo, "");
+
+  // If user is trying to go to /admin, enforce platform_admin here to avoid confusing “login succeeded but bounced to /”.
+  const wantsAdmin = requestedRedirect === "/admin" || requestedRedirect.startsWith("/admin/");
+  const isPlatformAdmin = profile?.role === "platform_admin";
+  if (wantsAdmin && !isPlatformAdmin) {
+    await supabase.auth.signOut();
+    const res = NextResponse.json({ ok: false, message: "Je hebt geen platform admin rechten." }, { status: 403 });
+    applyCookies(res);
+    return res;
+  }
+
+  // Platform admins may not be tied to a company; allow /admin without requiring company_id.
+  if (wantsAdmin && isPlatformAdmin) {
+    const res = NextResponse.json({ ok: true, message: "Welkom terug.", redirectTo: "/admin" }, { status: 200 });
+    applyCookies(res);
+    return res;
+  }
+
   if (!profile?.company_id) {
     const res = NextResponse.json(
       {

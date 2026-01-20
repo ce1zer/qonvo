@@ -35,7 +35,9 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirectTo = params.get("redirectTo") ?? "";
+    const error = params.get("error") ?? "";
     form.setValue("redirectTo", redirectTo, { shouldDirty: false, shouldValidate: false });
+    if (error) setState({ ok: false, message: error });
   }, [form]);
 
   useEffect(() => {
