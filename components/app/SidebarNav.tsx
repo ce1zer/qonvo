@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const hrefPath = href.split("?")[0] ?? href;
+  return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
 }
 
 export function SidebarNav({ items }: { items: NavItem[] }) {
