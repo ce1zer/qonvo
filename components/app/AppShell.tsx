@@ -34,7 +34,7 @@ export function AppShell({
 }) {
   return (
     <div className={cn("min-h-screen bg-muted/30", className)}>
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl">
+      <div className="flex min-h-screen w-full">
         {/* Desktop sidebar */}
         <aside className="hidden w-64 flex-col gap-6 border-r bg-background p-5 md:flex">
           <div className="space-y-1">
@@ -48,7 +48,7 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
               <div className="flex min-w-0 items-center gap-3">
                 {/* Mobile nav */}
                 <div className="md:hidden">
@@ -84,7 +84,7 @@ export function AppShell({
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8">
             <div className="space-y-6">{children}</div>
           </main>
         </div>

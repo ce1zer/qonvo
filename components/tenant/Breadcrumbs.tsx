@@ -26,10 +26,10 @@ export function Breadcrumbs() {
   const items = segments.filter((s) => s !== "(shell)");
 
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-zinc-600">
+    <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
       <ol className="flex flex-wrap items-center gap-2">
         <li>
-          <Link href={base} className="hover:text-zinc-900">
+          <Link href={base} className="hover:text-foreground">
             {company.name}
           </Link>
         </li>
@@ -37,8 +37,8 @@ export function Breadcrumbs() {
           const href = `${base}/${items.slice(0, idx + 1).join("/")}`;
           return (
             <li key={href} className="flex items-center gap-2">
-              <span className="text-zinc-400">/</span>
-              <Link href={href} className="hover:text-zinc-900">
+              <span className="text-muted-foreground/60">/</span>
+              <Link href={href} className="hover:text-foreground">
                 {labelForSegment(seg)}
               </Link>
             </li>

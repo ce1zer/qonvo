@@ -3,18 +3,24 @@
 import Link from "next/link";
 
 export function AdminTabs({ active }: { active: "companies" | "users" }) {
-  const tabClass = (isActive: boolean) =>
-    [
-      "rounded-md px-3 py-2 text-sm font-medium",
-      isActive ? "bg-zinc-900 text-white" : "text-zinc-700 hover:bg-zinc-100"
-    ].join(" ");
-
   return (
-    <div className="flex gap-2 rounded-lg border border-zinc-200 bg-white p-2">
-      <Link href="/admin?tab=companies" className={tabClass(active === "companies")}>
+    <div className="flex gap-2 rounded-xl border bg-card p-2 shadow-sm">
+      <Link
+        href="/admin?tab=companies"
+        className={[
+          "rounded-md px-3 py-2 text-sm font-medium",
+          active === "companies" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+        ].join(" ")}
+      >
         Bedrijven
       </Link>
-      <Link href="/admin?tab=users" className={tabClass(active === "users")}>
+      <Link
+        href="/admin?tab=users"
+        className={[
+          "rounded-md px-3 py-2 text-sm font-medium",
+          active === "users" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+        ].join(" ")}
+      >
         Gebruikers
       </Link>
     </div>

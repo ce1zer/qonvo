@@ -4,6 +4,9 @@ import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { initialScenarioActionState, type ScenarioActionState } from "@/lib/scenarios/schema";
+import { SectionCard } from "@/components/app/SectionCard";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export function DeleteScenarioSection({ slug, scenarioId }: { slug: string; scenarioId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -46,49 +49,40 @@ export function DeleteScenarioSection({ slug, scenarioId }: { slug: string; scen
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-white p-5">
-      <h2 className="text-sm font-semibold text-zinc-900">Verwijderen</h2>
-      <p className="mt-1 text-sm text-zinc-600">
-        Dit verwijdert het scenario. Je kunt dit niet ongedaan maken.
-      </p>
-
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <details className="relative">
-          <summary className="inline-flex cursor-pointer list-none items-center justify-center rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100">
-            Scenario verwijderen…
-          </summary>
-
-          <div className="absolute left-0 mt-2 w-[22rem] max-w-[90vw] rounded-md border border-zinc-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-medium text-zinc-900">Weet je het zeker?</p>
-            <p className="mt-1 text-sm text-zinc-600">
-              Deze actie is definitief. Verwijder alleen als je zeker weet dat dit scenario niet meer nodig is.
-            </p>
-
-            <div className="mt-4 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-                onClick={(e) => {
-                  const details = (e.currentTarget.closest("details") as HTMLDetailsElement | null);
-                  if (details) details.open = false;
-                }}
-                disabled={isPending}
-              >
-                Annuleren
-              </button>
-              <button
-                type="button"
-                className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+    <SectionCard
+      title="Verwijderen"
+      description="Dit verwijdert het scenario. Je kunt dit niet ongedaan maken."
+      className="border-destructive/20"
+      actions={
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" disabled={isPending}>
+              Scenario verwijderen…
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deze actie is definitief. Verwijder alleen als je zeker weet dat dit scenario niet meer nodig is.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isPending}>Annuleren</AlertDialogCancel>
+              <AlertDialogAction
                 onClick={onDelete}
                 disabled={isPending}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {isPending ? "Bezig..." : "Definitief verwijderen"}
-              </button>
-            </div>
-          </div>
-        </details>
-      </div>
-    </div>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      }
+    >
+      <div />
+    </SectionCard>
   );
 }
 

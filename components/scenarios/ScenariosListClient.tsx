@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SectionCard } from "@/components/app/SectionCard";
 
 export type ScenarioListItem = {
   id: string;
@@ -108,20 +109,14 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-zinc-200 bg-white p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-zinc-900">Zoeken</p>
-            <p className="text-sm text-zinc-600">Zoek op naam, onderwerp of persona.</p>
-          </div>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="sm:w-80"
-            placeholder="Bijv. boze klant, feedback, winkel…"
-          />
-        </div>
-      </div>
+      <SectionCard title="Zoeken" description="Zoek op naam, onderwerp of persona.">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="sm:w-80"
+          placeholder="Bijv. boze klant, feedback, winkel…"
+        />
+      </SectionCard>
 
       <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
         <div className="grid grid-cols-12 gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -157,7 +152,7 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
         ))}
 
         {items.length === 0 ? (
-          <div className="px-4 py-10 text-center text-sm text-zinc-600">
+          <div className="px-4 py-10 text-center text-sm text-muted-foreground">
             Geen scenario’s gevonden. Pas je zoekterm aan.
           </div>
         ) : null}
