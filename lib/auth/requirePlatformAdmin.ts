@@ -8,7 +8,7 @@ export async function requirePlatformAdmin(redirectTo: string = "/admin") {
 
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
-    redirect(`/login?redirectTo=${encodeURIComponent(redirectTo)}`);
+    redirect(`/admin/login?redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 
   const { data: profile, error } = await supabase
