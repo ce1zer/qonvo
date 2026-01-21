@@ -29,6 +29,37 @@ export function createSupabaseRouteClient(request: NextRequest) {
         secure: isDev ? false : options.secure
       });
     });
+
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/7011e779-7231-48bb-9f32-a1485f240e9a", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "debug-session",
+        runId: "pre-fix",
+        hypothesisId: "H1",
+        location: "lib/supabase/route.ts:applyCookies",
+        message: "applyCookies called",
+        data: {
+          cookiesToSetCount: cookiesToSet.length,
+          cookieNames: cookiesToSet.map((c) => c.name).slice(0, 10),
+          cookieOptionSamples: cookiesToSet.slice(0, 2).map((c) => ({
+            name: c.name,
+            path: c.options?.path,
+            domain: c.options?.domain,
+            sameSite: c.options?.sameSite,
+            secure: Boolean(c.options?.secure),
+            httpOnly: Boolean(c.options?.httpOnly),
+            maxAge: c.options?.maxAge
+          })),
+          anySecure: cookiesToSet.some((c) => Boolean(c.options?.secure)),
+          anyHttpOnly: cookiesToSet.some((c) => Boolean(c.options?.httpOnly)),
+          anySameSite: Array.from(new Set(cookiesToSet.map((c) => String(c.options?.sameSite ?? "")))).slice(0, 5)
+        },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion agent log
   }
 
   return { supabase, applyCookies };

@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   });
 
   // Refresh session if needed (keeps auth cookies in sync).
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
 
   return response;
 }
