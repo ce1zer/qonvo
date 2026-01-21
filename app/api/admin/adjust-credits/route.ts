@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requirePlatformAdminApi } from "@/lib/auth/requirePlatformAdminApi";
 
 const BodySchema = z.object({
-  companyId: z.string().uuid(),
+  organizationId: z.string().uuid(),
   amount: z.number().int(),
   reason: z.string().min(1).max(200)
 });
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const { supabase, applyCookies } = admin;
 
   const { data, error } = await supabase.rpc("admin_adjust_credits", {
-    company_id: parsed.data.companyId,
+    organization_id: parsed.data.organizationId,
     amount: parsed.data.amount,
     reason: parsed.data.reason
   });

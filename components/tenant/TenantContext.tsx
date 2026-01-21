@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useState } from "react";
 
-export type TenantCompany = {
+export type TenantOrganization = {
   id: string;
   name: string;
   slug: string;
@@ -11,12 +11,12 @@ export type TenantCompany = {
 
 export type TenantProfile = {
   user_id: string;
-  company_id: string | null;
-  role: "member" | "company_admin" | "platform_admin";
+  organization_id: string | null;
+  role: "member" | "organization_admin" | "platform_admin";
 };
 
 export type TenantContextValue = {
-  company: TenantCompany;
+  organization: TenantOrganization;
   profile: TenantProfile;
   creditsBalance: number;
   setCreditsBalance: (next: number) => void;
@@ -39,7 +39,7 @@ export function TenantProvider({
   value: Omit<TenantContextValue, "creditsBalance" | "setCreditsBalance">;
   children: React.ReactNode;
 }) {
-  const [creditsBalance, setCreditsBalance] = useState<number>(value.company.credits_balance);
+  const [creditsBalance, setCreditsBalance] = useState<number>(value.organization.credits_balance);
 
   const ctx = useMemo<TenantContextValue>(() => {
     return {

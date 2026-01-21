@@ -4,7 +4,7 @@
 -- Why this is necessary:
 -- - If RLS is enabled on public.profiles but there is no SELECT policy that allows the
 --   logged-in user to read their row, the app will behave as if the user is not linked
---   to a company (company_id appears missing).
+--   to an organization (organization_id appears missing).
 
 -- Ensure RLS is enabled (safe if already enabled)
 alter table public.profiles enable row level security;
@@ -13,20 +13,20 @@ alter table public.profiles enable row level security;
 -- We define them here because policy expressions must not self-reference `profiles` directly
 -- (that can trigger infinite recursion under RLS).
 
-create or replace function public.current_company_id()
+create or replace function public.current_organization_id()
 returns uuid
 language sql
 security definer
 stable
 set search_path = public, auth
 as $$
-  select p.company_id
+  select p.organization_id
   from public.profiles p
   where p.user_id = auth.uid()
   limit 1;
 $$;
 
-grant execute on function public.current_company_id() to authenticated;
+grant execute on function public.current_organization_id() to authenticated;
 
 create or replace function public.current_role()
 returns text
@@ -57,7 +57,7 @@ grant execute on function public.is_platform_admin() to authenticated;
 
 -- Drop + recreate policies (idempotent)
 drop policy if exists profiles_select_own on public.profiles;
-drop policy if exists profiles_select_company_admin_same_company on public.profiles;
+drop policy if exists profiles_select_organization_admin_same_organization on public.profiles;
 drop policy if exists profiles_select_platform_admin on public.profiles;
 
 -- 1) Any authenticated user can read their own profile row
@@ -67,14 +67,14 @@ for select
 to authenticated
 using (user_id = auth.uid());
 
--- 2) Company admins can read all profiles within their company (tenant-scoped)
-create policy profiles_select_company_admin_same_company
+-- 2) Organization admins can read all profiles within their organization (tenant-scoped)
+create policy profiles_select_organization_admin_same_organization
 on public.profiles
 for select
 to authenticated
 using (
-  public.current_role() = 'company_admin'
-  and public.current_company_id() = company_id
+  public.current_role() = 'organization_admin'
+  and public.current_organization_id() = organization_id
 );
 
 -- 3) Platform admins can read all profiles

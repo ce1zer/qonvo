@@ -57,7 +57,7 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
     });
   }, [query, initialItems]);
 
-  const canManageEmbed = profile.role === "company_admin" || profile.role === "platform_admin";
+  const canManageEmbed = profile.role === "organization_admin" || profile.role === "platform_admin";
 
   const embedSnippet = useMemo(() => {
     if (!embedToken) return "";
@@ -133,7 +133,7 @@ export function ScenariosListClient({ slug, initialItems }: { slug: string; init
             {items.map((s) => (
               <TableRow key={s.id}>
                 <TableCell className="min-w-0">
-                  <Link href={`/bedrijf/${slug}/scenarios/${s.id}`} className="block min-w-0">
+                  <Link href={`/organisatie/${slug}/scenarios/${s.id}`} className="block min-w-0">
                     <p className="truncate font-medium">{s.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{s.persona}</p>
                   </Link>

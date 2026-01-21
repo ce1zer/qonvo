@@ -6,7 +6,7 @@ const EnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   N8N_WEBHOOK_URL: z.string().url().optional(),
   N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
-  INITIAL_COMPANY_CREDITS: z
+  INITIAL_ORGANIZATION_CREDITS: z
     .string()
     .transform((v) => Number(v))
     .pipe(z.number().int().nonnegative())

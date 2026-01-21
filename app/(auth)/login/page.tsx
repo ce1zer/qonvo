@@ -98,7 +98,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="naam@bedrijf.nl"
+                placeholder="naam@organisatie.nl"
               {...form.register("email")}
             />
             {form.formState.errors.email?.message ? (

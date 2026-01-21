@@ -3,12 +3,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 
-export async function adjustCredits(companyId: string, amount: number, reason: string) {
-  await requirePlatformAdmin("/admin?tab=companies");
+export async function adjustCredits(organizationId: string, amount: number, reason: string) {
+  await requirePlatformAdmin("/admin?tab=organizations");
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase.rpc("admin_adjust_credits", {
-    company_id: companyId,
+    organization_id: organizationId,
     amount,
     reason
   });

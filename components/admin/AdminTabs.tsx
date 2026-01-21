@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 
-export function AdminTabs({ active }: { active: "companies" | "users" }) {
+export function AdminTabs({ active }: { active: "organizations" | "users" }) {
   return (
     <div className="flex gap-2 rounded-xl border bg-card p-2 shadow-sm">
       <Link
-        href="/admin?tab=companies"
+        href="/admin?tab=organizations"
         className={[
           "rounded-md px-3 py-2 text-sm font-medium",
-          active === "companies" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+          active === "organizations" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
         ].join(" ")}
       >
-        Bedrijven
+        Organisaties
       </Link>
       <Link
         href="/admin?tab=users"

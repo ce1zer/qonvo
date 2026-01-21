@@ -31,31 +31,31 @@ export async function POST(request: Request) {
   // Tenant context
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("company_id")
+    .select("organization_id")
     .maybeSingle();
 
-  if (profileError || !profile?.company_id) return jsonError(403, "Geen toegang.");
+  if (profileError || !profile?.organization_id) return jsonError(403, "Geen toegang.");
 
-  // Conversation must belong to the user's company (tenant check)
+  // Conversation must belong to the user's organization (tenant check)
   const { data: conversation, error: convError } = await supabase
     .from("conversations")
-    .select("id, company_id, scenario_id, mode")
+    .select("id, organization_id, scenario_id, mode")
     .eq("id", parsed.data.conversationId)
-    .eq("company_id", profile.company_id)
+    .eq("organization_id", profile.organization_id)
     .single();
 
   if (convError || !conversation) return jsonError(404, "Gesprek niet gevonden.");
 
-  const { data: company, error: companyError } = await supabase
-    .from("companies")
+  const { data: organization, error: organizationError } = await supabase
+    .from("organizations")
     .select("id, slug, credits_balance")
-    .eq("id", profile.company_id)
+    .eq("id", profile.organization_id)
     .single();
 
-  if (companyError || !company) return jsonError(404, "Bedrijf niet gevonden.");
+  if (organizationError || !organization) return jsonError(404, "Organisatie niet gevonden.");
 
   // Block sending if no credits
-  if ((company.credits_balance ?? 0) <= 0) {
+  if ((organization.credits_balance ?? 0) <= 0) {
     return NextResponse.json(
       {
         ok: false,
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     .from("scenarios")
     .select("persona, topic, instructions, evaluation_criteria")
     .eq("id", conversation.scenario_id)
-    .eq("company_id", profile.company_id)
+    .eq("organization_id", profile.organization_id)
     .single();
 
   if (scenarioError || !scenario) return jsonError(404, "Scenario niet gevonden.");
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
   const { data: userMsgRow, error: userMsgError } = await supabase
     .from("messages")
     .insert({
-      company_id: profile.company_id,
+      organization_id: profile.organization_id,
       conversation_id: conversation.id,
       role: "user",
       input_mode: "text",
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 
   const payload = buildN8NPayload({
     conversationId: conversation.id,
-    company: { id: company.id, slug: company.slug },
+    organization: { id: organization.id, slug: organization.slug },
     scenario: {
       persona: scenario.persona,
       topic: scenario.topic,
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
   // We do this after we have the assistant reply. If a concurrent request consumed the last credit,
   // the RPC will fail and we block the turn.
   const { data: newBalance, error: spendError } = await supabase.rpc("spend_credits", {
-    company_id: company.id,
+    organization_id: organization.id,
     amount: 1,
     reason: "chat_turn",
     conversation_id: conversation.id
@@ -163,14 +163,14 @@ export async function POST(request: Request) {
       {
         ok: false,
         message: "Je credits zijn op. Koop credits bij om door te gaan.",
-        creditsBalance: company.credits_balance ?? 0
+        creditsBalance: organization.credits_balance ?? 0
       },
       { status: 402 }
     );
   }
 
   const { error: assistantInsertError } = await supabase.from("messages").insert({
-    company_id: profile.company_id,
+    organization_id: profile.organization_id,
     conversation_id: conversation.id,
     role: "assistant",
     input_mode: "text",

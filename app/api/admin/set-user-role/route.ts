@@ -5,7 +5,7 @@ import { requirePlatformAdminApi } from "@/lib/auth/requirePlatformAdminApi";
 
 const BodySchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["member", "company_admin"])
+  role: z.enum(["member", "organization_admin"])
 });
 
 export async function POST(request: NextRequest) {

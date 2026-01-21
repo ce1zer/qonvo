@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requirePlatformAdminApi } from "@/lib/auth/requirePlatformAdminApi";
 
 const BodySchema = z.object({
-  companyId: z.string().uuid(),
+  organizationId: z.string().uuid(),
   isDisabled: z.boolean()
 });
 
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
 
   const { supabase, applyCookies } = admin;
 
-  const { error } = await supabase.rpc("admin_set_company_disabled", {
-    company_id: parsed.data.companyId,
+  const { error } = await supabase.rpc("admin_set_organization_disabled", {
+    organization_id: parsed.data.organizationId,
     is_disabled: parsed.data.isDisabled
   });
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   }
 
   const res = NextResponse.json(
-    { ok: true, message: parsed.data.isDisabled ? "Bedrijf gedeactiveerd." : "Bedrijf geactiveerd." },
+    { ok: true, message: parsed.data.isDisabled ? "Organisatie gedeactiveerd." : "Organisatie geactiveerd." },
     { status: 200 }
   );
   applyCookies(res);

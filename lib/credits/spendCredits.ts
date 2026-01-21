@@ -2,10 +2,10 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function spendCredits(companyId: string, amount: number, reason: string, conversationId?: string) {
+export async function spendCredits(organizationId: string, amount: number, reason: string, conversationId?: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("spend_credits", {
-    company_id: companyId,
+    organization_id: organizationId,
     amount,
     reason,
     conversation_id: conversationId ?? null

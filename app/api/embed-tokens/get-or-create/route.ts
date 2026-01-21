@@ -33,11 +33,11 @@ export async function POST(request: Request) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("company_id, role")
+    .select("organization_id, role")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile?.company_id) {
+  if (profileError || !profile?.organization_id) {
     if (profileError) {
       console.error("[embedTokens.getOrCreate] profile lookup failed", {
         code: supabaseErrorCode(profileError),
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
     return jsonError(403, "Geen toegang.");
   }
 
-  const role = profile.role as "member" | "company_admin" | "platform_admin";
-  if (role !== "company_admin" && role !== "platform_admin") {
+  const role = profile.role as "member" | "organization_admin" | "platform_admin";
+  if (role !== "organization_admin" && role !== "platform_admin") {
     return jsonError(403, "Je hebt geen rechten om embedcodes te beheren.");
   }
 
@@ -57,13 +57,13 @@ export async function POST(request: Request) {
     .from("scenarios")
     .select("id")
     .eq("id", parsed.data.scenarioId)
-    .eq("company_id", profile.company_id)
+    .eq("organization_id", profile.organization_id)
     .maybeSingle();
 
   if (scenarioError) {
     console.error("[embedTokens.getOrCreate] scenario lookup failed", {
       scenarioId: parsed.data.scenarioId,
-      companyId: profile.company_id,
+      organizationId: profile.organization_id,
       code: supabaseErrorCode(scenarioError),
       message: supabaseErrorMessage(scenarioError)
     });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     .from("embed_tokens")
     .select("token")
     .eq("scenario_id", parsed.data.scenarioId)
-    .eq("company_id", profile.company_id)
+    .eq("organization_id", profile.organization_id)
     .eq("active", true)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const message = supabaseErrorMessage(existingError);
     console.error("[embedTokens.getOrCreate] existing token lookup failed", {
       scenarioId: parsed.data.scenarioId,
-      companyId: profile.company_id,
+      organizationId: profile.organization_id,
       code,
       message
     });
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
   const { data: inserted, error: insertError } = await supabase
     .from("embed_tokens")
     .insert({
-      company_id: profile.company_id,
+      organization_id: profile.organization_id,
       scenario_id: parsed.data.scenarioId,
       active: true,
       created_by: userData.user.id
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       const message = supabaseErrorMessage(insertError);
       console.error("[embedTokens.getOrCreate] insert failed", {
         scenarioId: parsed.data.scenarioId,
-        companyId: profile.company_id,
+        organizationId: profile.organization_id,
         userId: userData.user.id,
         code,
         message

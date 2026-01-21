@@ -54,11 +54,18 @@ export default async function ConversationChatPage({
         description={`Scenario: ${scenario.name} · Onderwerp: ${scenario.topic}`}
         actions={
           <>
-            <Button type="button" variant="outline" size="icon" disabled aria-label="Binnenkort beschikbaar" title="Binnenkort beschikbaar">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled
+              aria-label="Binnenkort beschikbaar"
+              title="Binnenkort beschikbaar"
+            >
               <span aria-hidden>🎤</span>
             </Button>
             <Button asChild variant="outline">
-              <Link href={`/bedrijf/${slug}/gesprekken`}>Terug naar gesprekken</Link>
+              <Link href={`/organisatie/${slug}/gesprekken`}>Terug naar gesprekken</Link>
             </Button>
           </>
         }

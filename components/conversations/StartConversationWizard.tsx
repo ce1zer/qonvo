@@ -121,7 +121,7 @@ export function StartConversationWizard({
               </p>
               <div className="flex justify-center gap-3">
                 <Button asChild>
-                  <Link href={`/bedrijf/${slug}/scenarios/nieuw`} onClick={() => setOpen(false)}>
+                  <Link href={`/organisatie/${slug}/scenarios/nieuw`} onClick={() => setOpen(false)}>
                     Maak je eerste scenario
                   </Link>
                 </Button>

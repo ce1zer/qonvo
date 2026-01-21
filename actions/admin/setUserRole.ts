@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 
-export async function setUserRole(userId: string, role: "member" | "company_admin") {
+export async function setUserRole(userId: string, role: "member" | "organization_admin") {
   await requirePlatformAdmin("/admin?tab=users");
   const supabase = await createSupabaseServerClient();
 

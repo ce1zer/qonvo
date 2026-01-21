@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { AdminTabs } from "@/components/admin/AdminTabs";
-import { CompaniesTable, type AdminCompanyRow } from "@/components/admin/CompaniesTable";
+import { OrganizationsTable, type AdminOrganizationRow } from "@/components/admin/OrganizationsTable";
 import { UsersTable, type AdminUserRow } from "@/components/admin/UsersTable";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SectionCard } from "@/components/app/SectionCard";
@@ -15,17 +15,17 @@ export default async function AdminPage({
 }) {
   await requirePlatformAdmin("/admin");
   const { tab } = await searchParams;
-  const active = tab === "users" ? "users" : "companies";
+  const active = tab === "users" ? "users" : "organizations";
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: companies } = await supabase
-    .from("companies")
+  const { data: organizations } = await supabase
+    .from("organizations")
     .select("id, name, slug, credits_balance, created_at, is_disabled")
     .order("created_at", { ascending: false });
 
-  const companyRows: AdminCompanyRow[] = (
-    (companies ?? []) as Array<{
+  const organizationRows: AdminOrganizationRow[] = (
+    (organizations ?? []) as Array<{
       id: string;
       name: string;
       slug: string;
@@ -42,10 +42,10 @@ export default async function AdminPage({
     is_disabled: Boolean(c.is_disabled)
   }));
 
-  const { data: profiles } = await supabase.from("profiles").select("user_id, company_id, role");
+  const { data: profiles } = await supabase.from("profiles").select("user_id, organization_id, role");
 
-  const companySlugById = new Map<string, string>();
-  for (const c of companyRows) companySlugById.set(c.id, c.slug);
+  const organizationSlugById = new Map<string, string>();
+  for (const o of organizationRows) organizationSlugById.set(o.id, o.slug);
 
   // Email lookup via Admin API (service role). If missing, show "—" and still render.
   const emailByUserId = new Map<string, string>();
@@ -60,25 +60,25 @@ export default async function AdminPage({
   }
 
   const userRows: AdminUserRow[] = (
-    (profiles ?? []) as Array<{ user_id: string; company_id: string | null; role: AdminUserRow["role"] }>
+    (profiles ?? []) as Array<{ user_id: string; organization_id: string | null; role: AdminUserRow["role"] }>
   ).map((p) => ({
     user_id: p.user_id,
     email: emailByUserId.get(p.user_id) ?? "—",
     role: p.role,
-    company_slug: p.company_id ? companySlugById.get(p.company_id) ?? null : null
+    organization_slug: p.organization_id ? organizationSlugById.get(p.organization_id) ?? null : null
   }));
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Admin"
-        description={active === "companies" ? "Beheer bedrijven en credits." : "Beheer gebruikers en rollen."}
+        description={active === "organizations" ? "Beheer organisaties en credits." : "Beheer gebruikers en rollen."}
       />
       <AdminTabs active={active} />
 
-      {active === "companies" ? (
+      {active === "organizations" ? (
         <SectionCard contentClassName="p-0">
-          <CompaniesTable companies={companyRows} />
+          <OrganizationsTable organizations={organizationRows} />
         </SectionCard>
       ) : (
         <SectionCard contentClassName="p-0">

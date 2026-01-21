@@ -6,7 +6,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requirePlatformAdmin("/admin");
 
   const navItems: NavItem[] = [
-    { href: "/admin?tab=companies", label: "Bedrijven" },
+    { href: "/admin?tab=organizations", label: "Organisaties" },
     { href: "/admin?tab=users", label: "Gebruikers" }
   ];
 

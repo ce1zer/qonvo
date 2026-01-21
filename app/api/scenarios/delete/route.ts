@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("company_id")
+    .select("organization_id")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile?.company_id) {
-    const res = jsonError(403, "Je account is nog niet gekoppeld aan een bedrijf.");
+  if (profileError || !profile?.organization_id) {
+    const res = jsonError(403, "Je account is nog niet gekoppeld aan een organisatie.");
     applyCookies(res);
     return res;
   }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     .from("scenarios")
     .delete()
     .eq("id", parsed.data.scenarioId)
-    .eq("company_id", profile.company_id);
+    .eq("organization_id", profile.organization_id);
 
   if (error) {
     const res = jsonError(500, "Verwijderen is niet gelukt. Probeer het opnieuw.");
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const res: ScenarioActionState = {
     ok: true,
     message: "Scenario verwijderd.",
-    redirectTo: `/bedrijf/${parsed.data.slug}/scenarios`
+    redirectTo: `/organisatie/${parsed.data.slug}/scenarios`
   };
   const response = NextResponse.json(res, { status: 200 });
   applyCookies(response);

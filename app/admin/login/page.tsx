@@ -93,7 +93,13 @@ export default function AdminLoginPage() {
 
             <div className="space-y-1">
               <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" autoComplete="email" placeholder="naam@bedrijf.nl" {...form.register("email")} />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="naam@organisatie.nl"
+                {...form.register("email")}
+              />
               {form.formState.errors.email?.message ? (
                 <p className="text-xs text-red-600">{form.formState.errors.email.message}</p>
               ) : null}

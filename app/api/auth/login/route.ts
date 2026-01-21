@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("company_id, role")
+    .select("organization_id, role")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -55,18 +55,18 @@ export async function POST(request: NextRequest) {
     return res;
   }
 
-  // Platform admins may not be tied to a company; allow /admin without requiring company_id.
+  // Platform admins may not be tied to an organization; allow /admin without requiring organization_id.
   if (wantsAdmin && isPlatformAdmin) {
     const res = NextResponse.json({ ok: true, message: "Welkom terug.", redirectTo: "/admin" }, { status: 200 });
     applyCookies(res);
     return res;
   }
 
-  if (!profile?.company_id) {
+  if (!profile?.organization_id) {
     const res = NextResponse.json(
       {
         ok: false,
-        message: "Je account is nog niet gekoppeld aan een bedrijf. Neem contact op met je beheerder."
+        message: "Je account is nog niet gekoppeld aan een organisatie. Neem contact op met je beheerder."
       },
       { status: 403 }
     );
@@ -74,24 +74,28 @@ export async function POST(request: NextRequest) {
     return res;
   }
 
-  const { data: company } = await supabase.from("companies").select("slug, is_disabled").eq("id", profile.company_id).single();
-  if (!company) {
-    const res = NextResponse.json({ ok: false, message: "Bedrijf niet gevonden." }, { status: 404 });
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("slug, is_disabled")
+    .eq("id", profile.organization_id)
+    .single();
+  if (!organization) {
+    const res = NextResponse.json({ ok: false, message: "Organisatie niet gevonden." }, { status: 404 });
     applyCookies(res);
     return res;
   }
 
-  if (company.is_disabled) {
+  if (organization.is_disabled) {
     await supabase.auth.signOut();
     const res = NextResponse.json(
-      { ok: false, message: "Dit bedrijf is gedeactiveerd. Neem contact op met je beheerder." },
+      { ok: false, message: "Deze organisatie is gedeactiveerd. Neem contact op met je beheerder." },
       { status: 403 }
     );
     applyCookies(res);
     return res;
   }
 
-  const redirectTo = safeInternalRedirect(parsed.data.redirectTo, `/bedrijf/${company.slug}/dashboard`);
+  const redirectTo = safeInternalRedirect(parsed.data.redirectTo, `/organisatie/${organization.slug}/dashboard`);
   const res = NextResponse.json({ ok: true, message: "Welkom terug.", redirectTo }, { status: 200 });
   applyCookies(res);
   return res;

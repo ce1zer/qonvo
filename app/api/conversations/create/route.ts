@@ -34,13 +34,13 @@ export async function POST(request: Request) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("company_id")
+    .select("organization_id")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile?.company_id) {
+  if (profileError || !profile?.organization_id) {
     if (profileError) console.error("[conversations.create] profile lookup failed", { profileError });
-    return jsonError(403, "Je account is nog niet gekoppeld aan een bedrijf.");
+    return jsonError(403, "Je account is nog niet gekoppeld aan een organisatie.");
   }
 
   // Ensure the scenario belongs to this tenant (never trust client scenarioId)
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     .from("scenarios")
     .select("id")
     .eq("id", parsed.data.scenarioId)
-    .eq("company_id", profile.company_id)
+    .eq("organization_id", profile.organization_id)
     .maybeSingle();
 
   if (scenarioError) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   const { data: inserted, error: insertError } = await supabase
     .from("conversations")
     .insert({
-      company_id: profile.company_id,
+      organization_id: profile.organization_id,
       scenario_id: parsed.data.scenarioId,
       started_by: userData.user.id,
       status: "active",
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     ok: true,
     message: "Gesprek gestart.",
     conversationId: inserted.id,
-    redirectTo: `/bedrijf/${parsed.data.slug}/gesprekken/${inserted.id}`
+    redirectTo: `/organisatie/${parsed.data.slug}/gesprekken/${inserted.id}`
   };
   return NextResponse.json(res, { status: 200 });
 }

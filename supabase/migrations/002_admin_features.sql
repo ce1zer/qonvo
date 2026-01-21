@@ -1,16 +1,16 @@
 -- Platform admin features
--- - companies.is_disabled (soft flag)
+-- - organizations.is_disabled (soft flag)
 -- - admin RPCs with audit logging
 -- IMPORTANT: apply this in Supabase SQL Editor or via Supabase CLI migrations.
 
-alter table public.companies
+alter table public.organizations
   add column if not exists is_disabled boolean not null default false;
 
-create index if not exists companies_is_disabled_idx
-  on public.companies (is_disabled);
+create index if not exists organizations_is_disabled_idx
+  on public.organizations (is_disabled);
 
 create or replace function public.admin_adjust_credits(
-  company_id uuid,
+  organization_id uuid,
   amount bigint,
   reason text
 )
@@ -31,14 +31,14 @@ begin
   end if;
 
   insert into public.credit_ledger (
-    company_id,
+    organization_id,
     conversation_id,
     amount,
     reason,
     metadata,
     created_by
   ) values (
-    company_id,
+    organization_id,
     null,
     amount,
     reason,
@@ -47,24 +47,24 @@ begin
   );
 
   insert into public.audit_log (
-    company_id,
+    organization_id,
     actor_user_id,
     action,
     entity_type,
     entity_id,
     metadata
   ) values (
-    company_id,
+    organization_id,
     auth.uid(),
     'admin.adjust_credits',
-    'company',
-    company_id,
+    'organization',
+    organization_id,
     jsonb_build_object('amount', amount, 'reason', reason)
   );
 
   select c.credits_balance into v_new_balance
-  from public.companies c
-  where c.id = company_id;
+  from public.organizations c
+  where c.id = organization_id;
 
   return v_new_balance;
 end;
@@ -72,8 +72,8 @@ $$;
 
 grant execute on function public.admin_adjust_credits(uuid, bigint, text) to authenticated;
 
-create or replace function public.admin_set_company_disabled(
-  company_id uuid,
+create or replace function public.admin_set_organization_disabled(
+  organization_id uuid,
   is_disabled boolean
 )
 returns void
@@ -86,30 +86,30 @@ begin
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
-  update public.companies
-    set is_disabled = admin_set_company_disabled.is_disabled,
+  update public.organizations
+    set is_disabled = admin_set_organization_disabled.is_disabled,
         updated_at = now()
-  where id = company_id;
+  where id = organization_id;
 
   insert into public.audit_log (
-    company_id,
+    organization_id,
     actor_user_id,
     action,
     entity_type,
     entity_id,
     metadata
   ) values (
-    company_id,
+    organization_id,
     auth.uid(),
-    'admin.set_company_disabled',
-    'company',
-    company_id,
-    jsonb_build_object('is_disabled', admin_set_company_disabled.is_disabled)
+    'admin.set_organization_disabled',
+    'organization',
+    organization_id,
+    jsonb_build_object('is_disabled', admin_set_organization_disabled.is_disabled)
   );
 end;
 $$;
 
-grant execute on function public.admin_set_company_disabled(uuid, boolean) to authenticated;
+grant execute on function public.admin_set_organization_disabled(uuid, boolean) to authenticated;
 
 create or replace function public.admin_set_user_role(
   target_user_id uuid,
@@ -121,17 +121,17 @@ security definer
 set search_path = public, auth
 as $$
 declare
-  v_company_id uuid;
+  v_organization_id uuid;
 begin
   if not public.is_platform_admin() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
-  if new_role not in ('member', 'company_admin') then
+  if new_role not in ('member', 'organization_admin') then
     raise exception 'invalid_role' using errcode = '22023';
   end if;
 
-  select p.company_id into v_company_id
+  select p.organization_id into v_organization_id
   from public.profiles p
   where p.user_id = target_user_id;
 
@@ -141,14 +141,14 @@ begin
   where user_id = target_user_id;
 
   insert into public.audit_log (
-    company_id,
+    organization_id,
     actor_user_id,
     action,
     entity_type,
     entity_id,
     metadata
   ) values (
-    v_company_id,
+    v_organization_id,
     auth.uid(),
     'admin.set_user_role',
     'profile',

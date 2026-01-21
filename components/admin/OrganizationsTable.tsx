@@ -15,14 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
-export type AdminCompanyRow = {
+export type AdminOrganizationRow = {
   id: string;
   name: string;
   slug: string;
@@ -45,14 +38,14 @@ export type AdminCompanyRow = {
   is_disabled: boolean;
 };
 
-export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) {
+export function OrganizationsTable({ organizations }: { organizations: AdminOrganizationRow[] }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [amountById, setAmountById] = useState<Record<string, string>>({});
   const [creditsOpenForId, setCreditsOpenForId] = useState<string | null>(null);
 
-  function setAmount(companyId: string, value: string) {
-    setAmountById((prev) => ({ ...prev, [companyId]: value }));
+  function setAmount(organizationId: string, value: string) {
+    setAmountById((prev) => ({ ...prev, [organizationId]: value }));
   }
 
   const creditsDeltaForActive = useMemo(() => {
@@ -62,8 +55,8 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
     return raw;
   }, [amountById, creditsOpenForId]);
 
-  function onAdjust(companyId: string, sign: 1 | -1) {
-    const raw = Number(amountById[companyId] ?? "0");
+  function onAdjust(organizationId: string, sign: 1 | -1) {
+    const raw = Number(amountById[organizationId] ?? "0");
     if (!Number.isFinite(raw) || raw <= 0) {
       toast.error("Vul een geldig aantal credits in.");
       return;
@@ -75,7 +68,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ companyId, amount: delta, reason: "admin_adjustment" })
+        body: JSON.stringify({ organizationId, amount: delta, reason: "admin_adjustment" })
       }).catch(() => null);
 
       const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
@@ -90,13 +83,13 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
     });
   }
 
-  function onToggleDisabled(companyId: string, next: boolean) {
+  function onToggleDisabled(organizationId: string, next: boolean) {
     startTransition(async () => {
-      const res = await fetch("/api/admin/set-company-disabled", {
+      const res = await fetch("/api/admin/set-organization-disabled", {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ companyId, isDisabled: next })
+        body: JSON.stringify({ organizationId, isDisabled: next })
       }).catch(() => null);
 
       const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
@@ -105,7 +98,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
         return;
       }
 
-      toast.success(json?.message ?? (next ? "Bedrijf gedeactiveerd." : "Bedrijf geactiveerd."));
+      toast.success(json?.message ?? (next ? "Organisatie gedeactiveerd." : "Organisatie geactiveerd."));
       router.refresh();
     });
   }
@@ -114,7 +107,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Bedrijf</TableHead>
+          <TableHead>Organisatie</TableHead>
           <TableHead>Slug</TableHead>
           <TableHead className="text-right">Credits</TableHead>
           <TableHead>Status</TableHead>
@@ -122,23 +115,19 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
         </TableRow>
       </TableHeader>
       <TableBody>
-        {companies.map((c) => (
-          <TableRow key={c.id}>
+        {organizations.map((o) => (
+          <TableRow key={o.id}>
             <TableCell className="min-w-0">
-              <p className="truncate font-medium">{c.name}</p>
-              <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString("nl-NL")}</p>
+              <p className="truncate font-medium">{o.name}</p>
+              <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("nl-NL")}</p>
             </TableCell>
-            <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
-            <TableCell className="text-right font-medium">{c.credits_balance}</TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground">{o.slug}</TableCell>
+            <TableCell className="text-right font-medium">{o.credits_balance}</TableCell>
             <TableCell>
-              {c.is_disabled ? (
-                <Badge variant="destructive">Gedeactiveerd</Badge>
-              ) : (
-                <Badge variant="secondary">Actief</Badge>
-              )}
+              {o.is_disabled ? <Badge variant="destructive">Gedeactiveerd</Badge> : <Badge variant="secondary">Actief</Badge>}
             </TableCell>
             <TableCell className="text-right">
-              <Dialog open={creditsOpenForId === c.id} onOpenChange={(open) => setCreditsOpenForId(open ? c.id : null)}>
+              <Dialog open={creditsOpenForId === o.id} onOpenChange={(open) => setCreditsOpenForId(open ? o.id : null)}>
                 <AlertDialog>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -147,20 +136,18 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>Bedrijf</DropdownMenuLabel>
+                      <DropdownMenuLabel>Organisatie</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          Credits aanpassen…
-                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Credits aanpassen…</DropdownMenuItem>
                       </DialogTrigger>
                       <DropdownMenuSeparator />
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem
                           onSelect={(e) => e.preventDefault()}
-                          className={c.is_disabled ? "" : "text-destructive focus:text-destructive"}
+                          className={o.is_disabled ? "" : "text-destructive focus:text-destructive"}
                         >
-                          {c.is_disabled ? "Activeer bedrijf…" : "Deactiveer bedrijf…"}
+                          {o.is_disabled ? "Activeer organisatie…" : "Deactiveer organisatie…"}
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
                     </DropdownMenuContent>
@@ -171,10 +158,12 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
                       <DialogTitle>Credits aanpassen</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Vul het aantal credits in en kies toevoegen of aftrekken.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Vul het aantal credits in en kies toevoegen of aftrekken.
+                      </p>
                       <Input
-                        value={amountById[c.id] ?? ""}
-                        onChange={(e) => setAmount(c.id, e.target.value)}
+                        value={amountById[o.id] ?? ""}
+                        onChange={(e) => setAmount(o.id, e.target.value)}
                         placeholder="Aantal"
                         inputMode="numeric"
                         disabled={isPending}
@@ -184,15 +173,15 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => onAdjust(c.id, -1)}
-                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
+                        onClick={() => onAdjust(o.id, -1)}
+                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== o.id}
                       >
                         Aftrekken
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => onAdjust(c.id, 1)}
-                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== c.id}
+                        onClick={() => onAdjust(o.id, 1)}
+                        disabled={isPending || !creditsDeltaForActive || creditsOpenForId !== o.id}
                       >
                         Toevoegen
                       </Button>
@@ -201,20 +190,17 @@ export function CompaniesTable({ companies }: { companies: AdminCompanyRow[] }) 
 
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>{c.is_disabled ? "Bedrijf activeren?" : "Bedrijf deactiveren?"}</AlertDialogTitle>
+                      <AlertDialogTitle>{o.is_disabled ? "Organisatie activeren?" : "Organisatie deactiveren?"}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        {c.is_disabled
+                        {o.is_disabled
                           ? "Gebruikers kunnen weer inloggen en de tenant gebruiken."
                           : "Gebruikers kunnen daarna niet meer inloggen en alle tenant routes worden geblokkeerd."}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel disabled={isPending}>Annuleren</AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={isPending}
-                        onClick={() => onToggleDisabled(c.id, !c.is_disabled)}
-                      >
-                        {c.is_disabled ? "Activeer" : "Deactiveer"}
+                      <AlertDialogAction disabled={isPending} onClick={() => onToggleDisabled(o.id, !o.is_disabled)}>
+                        {o.is_disabled ? "Activeer" : "Deactiveer"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

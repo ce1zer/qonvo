@@ -11,7 +11,8 @@ Next.js (App Router) + Supabase Auth (SSR) foundation.
    - `N8N_WEBHOOK_URL`
    - `N8N_WEBHOOK_SECRET`
 
-2. Ensure your Supabase database has the required tables (`companies`, `profiles`, `credit_ledger`, etc.).
+2. Ensure your Supabase database has the required tables (`organizations`, `profiles`, `credit_ledger`, etc.).
+   - After applying new migrations (especially renames), **reload the Supabase API schema cache** (PostgREST) in the Supabase dashboard and restart your dev server.
 
 3. Install and run:
 
@@ -22,6 +23,6 @@ npm run dev
 
 ## Routes
 
-- `/signup` — 2-step wizard: company + account
-- `/login` — login and redirect to `/bedrijf/[slug]/dashboard`
+- `/signup` — 2-step wizard: organization + account
+- `/login` — login and redirect to `/organisatie/[slug]/dashboard`
 

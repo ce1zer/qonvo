@@ -28,7 +28,7 @@ export default async function TenantDashboardPage({ params }: { params: Promise<
           title="Nieuw scenario"
           description="Maak een persona, topic en beoordelingscriteria zodat je kunt oefenen."
           actions={
-            <Link href={`/bedrijf/${slug}/scenarios`} className="text-sm font-medium underline underline-offset-4">
+            <Link href={`/organisatie/${slug}/scenarios`} className="text-sm font-medium underline underline-offset-4">
               Openen
             </Link>
           }
@@ -48,8 +48,8 @@ export default async function TenantDashboardPage({ params }: { params: Promise<
       <EmptyState
         title="Tip: houd je flow simpel"
         description="Begin met één scenario en één gesprek. Daarna kun je uitbreiden met variaties en moeilijkheidsniveaus."
-        primaryAction={{ label: "Nieuw scenario", href: `/bedrijf/${slug}/scenarios` }}
-        secondaryAction={{ label: "Naar gesprekken", href: `/bedrijf/${slug}/gesprekken` }}
+        primaryAction={{ label: "Nieuw scenario", href: `/organisatie/${slug}/scenarios` }}
+        secondaryAction={{ label: "Naar gesprekken", href: `/organisatie/${slug}/gesprekken` }}
       />
     </div>
   );

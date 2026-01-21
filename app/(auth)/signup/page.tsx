@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const Step1Schema = z.object({
-  companyName: z.string().min(2, "Vul een bedrijfsnaam in."),
+  organizationName: z.string().min(2, "Vul een organisatienaam in."),
   slug: z
     .string()
     .min(2, "Vul een slug in.")
@@ -52,7 +52,7 @@ export default function SignupPage() {
     resolver: zodResolver(FullSchema),
     mode: "onChange",
     defaultValues: {
-      companyName: "",
+      organizationName: "",
       slug: "",
       email: "",
       password: "",
@@ -89,7 +89,7 @@ export default function SignupPage() {
   async function goNext() {
     const values = form.getValues();
     const parsed = Step1Schema.safeParse({
-      companyName: values.companyName,
+      organizationName: values.organizationName,
       slug: values.slug
     });
     if (!parsed.success) {
@@ -109,7 +109,7 @@ export default function SignupPage() {
         headers: { "content-type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          companyName: values.companyName,
+          organizationName: values.organizationName,
           slug: values.slug,
           email: values.email,
           password: values.password,
@@ -141,7 +141,7 @@ export default function SignupPage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Account aanmaken</h1>
         <p className="text-sm text-zinc-600">
-          Maak eerst je bedrijf aan, daarna je account. Je krijgt direct toegang tot het dashboard.
+          Maak eerst je organisatie aan, daarna je account. Je krijgt direct toegang tot het dashboard.
         </p>
       </header>
 
@@ -149,7 +149,7 @@ export default function SignupPage() {
         <CardContent className="p-5">
         <div className="mb-4 flex items-center justify-between text-sm">
           <span className={step === 1 ? "font-medium text-zinc-900" : "text-zinc-500"}>
-            Stap 1: Bedrijfsgegevens
+            Stap 1: Organisatiegegevens
           </span>
           <span className={step === 2 ? "font-medium text-zinc-900" : "text-zinc-500"}>
             Stap 2: Account
@@ -162,15 +162,15 @@ export default function SignupPage() {
           {step === 1 ? (
             <>
               <div className="space-y-1">
-                <Label htmlFor="companyName">Bedrijfsnaam</Label>
+                <Label htmlFor="organizationName">Organisatienaam</Label>
                 <Input
-                  id="companyName"
+                  id="organizationName"
                   autoComplete="organization"
                   placeholder="Bijv. Acme Training"
-                  {...form.register("companyName", {
+                  {...form.register("organizationName", {
                     onChange: (e) => {
                       const nextName = String(e.target.value);
-                      form.setValue("companyName", nextName, { shouldValidate: true });
+                      form.setValue("organizationName", nextName, { shouldValidate: true });
                       const currentSlug = form.getValues("slug");
                       if (!currentSlug) {
                         form.setValue("slug", slugify(nextName), { shouldValidate: true });
@@ -178,8 +178,8 @@ export default function SignupPage() {
                     }
                   })}
                 />
-                {fieldError("companyName") ? (
-                  <p className="text-xs text-red-600">{fieldError("companyName")}</p>
+                {fieldError("organizationName") ? (
+                  <p className="text-xs text-red-600">{fieldError("organizationName")}</p>
                 ) : (
                   <p className="text-xs text-zinc-500">Dit is zichtbaar voor je team.</p>
                 )}
@@ -199,7 +199,7 @@ export default function SignupPage() {
                   <p className="text-xs text-red-600">{fieldError("slug")}</p>
                 ) : (
                   <p className="text-xs text-zinc-500">
-                    Je dashboard komt straks op <span className="font-mono">/bedrijf/[slug]</span>.
+                    Je dashboard komt straks op <span className="font-mono">/organisatie/[slug]</span>.
                   </p>
                 )}
               </div>
@@ -222,7 +222,7 @@ export default function SignupPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="naam@bedrijf.nl"
+                  placeholder="naam@organisatie.nl"
                   {...form.register("email")}
                 />
                 {fieldError("email") ? (

@@ -7,7 +7,7 @@ import { getSupabaseEnv } from "@/lib/supabase/env";
 import { safeInternalRedirect } from "@/lib/navigation/safeRedirect";
 
 const SignupSchema = z.object({
-  companyName: z.string().min(2),
+  organizationName: z.string().min(2),
   slug: z.string().min(2).max(64),
   email: z.string().email(),
   password: z.string().min(8),
@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
   const admin = createSupabaseAdminClient();
 
   // Slug uniqueness (fast fail)
-  const { data: existing } = await admin.from("companies").select("id").eq("slug", parsed.data.slug).maybeSingle();
+  const { data: existing } = await admin.from("organizations").select("id").eq("slug", parsed.data.slug).maybeSingle();
   if (existing) {
     return NextResponse.json({ ok: false, message: "Deze slug is al in gebruik." }, { status: 409 });
   }
 
   let createdUserId: string | null = null;
-  let createdCompanyId: string | null = null;
+  let createdOrganizationId: string | null = null;
 
   try {
     const { data: createdUser, error: createUserError } = await admin.auth.admin.createUser({
@@ -57,31 +57,31 @@ export async function POST(request: NextRequest) {
 
     createdUserId = createdUser.user.id;
 
-    const { data: company, error: companyError } = await admin
-      .from("companies")
-      .insert({ name: parsed.data.companyName, slug: parsed.data.slug, credits_balance: 0 })
+    const { data: organization, error: organizationError } = await admin
+      .from("organizations")
+      .insert({ name: parsed.data.organizationName, slug: parsed.data.slug, credits_balance: 0 })
       .select("id, slug")
       .single();
 
-    if (companyError || !company) {
-      if ((companyError as { code?: string } | null)?.code === "23505") {
+    if (organizationError || !organization) {
+      if ((organizationError as { code?: string } | null)?.code === "23505") {
         return NextResponse.json({ ok: false, message: "Deze slug is al in gebruik." }, { status: 409 });
       }
-      throw new Error("company_insert_failed");
+      throw new Error("organization_insert_failed");
     }
 
-    createdCompanyId = company.id;
+    createdOrganizationId = organization.id;
 
     const { error: profileError } = await admin.from("profiles").insert({
       user_id: createdUserId,
-      company_id: createdCompanyId,
-      role: "company_admin"
+      organization_id: createdOrganizationId,
+      role: "organization_admin"
     });
     if (profileError) throw new Error("profile_insert_failed");
 
-    const initialCredits = env.INITIAL_COMPANY_CREDITS ?? 100;
+    const initialCredits = env.INITIAL_ORGANIZATION_CREDITS ?? 100;
     const { error: creditError } = await admin.from("credit_ledger").insert({
-      company_id: createdCompanyId,
+      organization_id: createdOrganizationId,
       amount: initialCredits,
       reason: "initial_allocation",
       metadata: { source: "signup" },
@@ -105,13 +105,13 @@ export async function POST(request: NextRequest) {
       return res;
     }
 
-    const redirectTo = safeInternalRedirect(parsed.data.redirectTo, `/bedrijf/${company.slug}/dashboard`);
+    const redirectTo = safeInternalRedirect(parsed.data.redirectTo, `/organisatie/${organization.slug}/dashboard`);
     const res = NextResponse.json({ ok: true, message: "Je account is aangemaakt.", redirectTo }, { status: 200 });
     applyCookies(res);
     return res;
   } catch {
     // Best-effort rollback
-    if (createdCompanyId) await admin.from("companies").delete().eq("id", createdCompanyId);
+    if (createdOrganizationId) await admin.from("organizations").delete().eq("id", createdOrganizationId);
     if (createdUserId) await admin.auth.admin.deleteUser(createdUserId);
     return NextResponse.json({ ok: false, message: "Er is iets misgegaan. Probeer het opnieuw." }, { status: 500 });
   }

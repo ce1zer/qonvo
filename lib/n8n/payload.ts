@@ -15,21 +15,21 @@ export type N8NScenario = {
  * Build the payload we POST to n8n.
  *
  * We intentionally include TWO shapes:
- * 1) Canonical structured payload: company/scenario/history/userMessage (preferred)
+ * 1) Canonical structured payload: organization/scenario/history/userMessage (preferred)
  * 2) Backwards-compatible keys for older n8n templates (responseType/message/subject/persona/instructions/sessionID)
  *
  * This keeps the app stable while you iterate on n8n workflows.
  */
 export function buildN8NPayload({
   conversationId,
-  company,
+  organization,
   scenario,
   mode,
   userMessage,
   history
 }: {
   conversationId: string;
-  company: { id: string; slug: string };
+  organization: { id: string; slug: string };
   scenario: N8NScenario;
   mode: "text" | "voice";
   userMessage: string;
@@ -46,7 +46,7 @@ export function buildN8NPayload({
 
     // Current structured payload (preferred):
     conversationId,
-    company,
+    organization,
     scenario,
     mode,
     userMessage,

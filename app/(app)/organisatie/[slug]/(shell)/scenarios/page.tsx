@@ -39,7 +39,7 @@ export default async function ScenariosPage({ params }: { params: Promise<{ slug
           <>
             <StartConversationWizard slug={slug} scenarios={scenarioOptions} triggerVariant="secondary" />
             <Button asChild>
-              <Link href={`/bedrijf/${slug}/scenarios/nieuw`}>Nieuw scenario</Link>
+              <Link href={`/organisatie/${slug}/scenarios/nieuw`}>Nieuw scenario</Link>
             </Button>
           </>
         }
@@ -49,14 +49,14 @@ export default async function ScenariosPage({ params }: { params: Promise<{ slug
         <EmptyState
           title="Scenario’s laden lukt niet"
           description="Probeer het opnieuw. Als dit blijft gebeuren, neem contact op met support."
-          primaryAction={{ label: "Naar dashboard", href: `/bedrijf/${slug}/dashboard` }}
+          primaryAction={{ label: "Naar dashboard", href: `/organisatie/${slug}/dashboard` }}
         />
       ) : items.length === 0 ? (
         <EmptyState
           title="Nog geen scenario’s"
           description="Maak je eerste scenario. Gebruik eventueel een preset, dan heb je direct een goed startpunt."
-          primaryAction={{ label: "Nieuw scenario", href: `/bedrijf/${slug}/scenarios/nieuw` }}
-          secondaryAction={{ label: "Naar dashboard", href: `/bedrijf/${slug}/dashboard` }}
+          primaryAction={{ label: "Nieuw scenario", href: `/organisatie/${slug}/scenarios/nieuw` }}
+          secondaryAction={{ label: "Naar dashboard", href: `/organisatie/${slug}/dashboard` }}
         />
       ) : (
         <ScenariosListClient slug={slug} initialItems={items} />

@@ -19,9 +19,9 @@ function labelForSegment(segment: string) {
 }
 
 export function Breadcrumbs() {
-  const { company } = useTenant();
+  const { organization } = useTenant();
   const segments = useSelectedLayoutSegments();
-  const base = `/bedrijf/${company.slug}`;
+  const base = `/organisatie/${organization.slug}`;
 
   const items = segments.filter((s) => s !== "(shell)");
 
@@ -30,7 +30,7 @@ export function Breadcrumbs() {
       <ol className="flex flex-wrap items-center gap-2">
         <li>
           <Link href={base} className="hover:text-foreground">
-            {company.name}
+            {organization.name}
           </Link>
         </li>
         {items.map((seg, idx) => {

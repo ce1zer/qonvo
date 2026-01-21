@@ -38,15 +38,15 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("user_id, company_id, role")
+    .select("user_id, organization_id, role")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 
-  if (!profile?.company_id) return <LoginRequired token={token} />;
+  if (!profile?.organization_id) return <LoginRequired token={token} />;
 
   const { data: embedTokenRow, error: embedTokenError } = await supabase
     .from("embed_tokens")
-    .select("token, company_id, scenario_id, active")
+    .select("token, organization_id, scenario_id, active")
     .eq("token", token)
     .eq("active", true)
     .maybeSingle();
@@ -56,20 +56,20 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
   if (!embedTokenRow) return <LoginRequired token={token} />;
 
   // Extra guard (RLS should already enforce this).
-  if (embedTokenRow.company_id !== profile.company_id) return <LoginRequired token={token} />;
+  if (embedTokenRow.organization_id !== profile.organization_id) return <LoginRequired token={token} />;
 
-  const { data: company } = await supabase
-    .from("companies")
+  const { data: organization } = await supabase
+    .from("organizations")
     .select("id, name, slug, credits_balance, is_disabled")
-    .eq("id", profile.company_id)
+    .eq("id", profile.organization_id)
     .single();
 
-  if (!company) return notFound();
+  if (!organization) return notFound();
 
-  if (company.is_disabled && profile.role !== "platform_admin") {
+  if (organization.is_disabled && profile.role !== "platform_admin") {
     return (
       <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col items-center justify-center px-4 py-10 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Bedrijf gedeactiveerd</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Organisatie gedeactiveerd</h1>
         <p className="mt-2 text-sm text-zinc-600">Deze tenant is gedeactiveerd. Neem contact op met je beheerder.</p>
       </div>
     );
@@ -79,7 +79,7 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
   const { data: insertedConversation, error: insertError } = await supabase
     .from("conversations")
     .insert({
-      company_id: profile.company_id,
+      organization_id: profile.organization_id,
       scenario_id: embedTokenRow.scenario_id,
       started_by: userData.user.id,
       status: "active",
@@ -94,15 +94,15 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
   return (
     <TenantProvider
       value={{
-        company: {
-          id: company.id,
-          name: company.name,
-          slug: company.slug,
-          credits_balance: company.credits_balance ?? 0
+        organization: {
+          id: organization.id,
+          name: organization.name,
+          slug: organization.slug,
+          credits_balance: organization.credits_balance ?? 0
         },
         profile: {
           user_id: profile.user_id,
-          company_id: profile.company_id,
+          organization_id: profile.organization_id,
           role: profile.role
         }
       }}
@@ -114,7 +114,7 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
             <p className="text-sm text-zinc-600">Je bent ingelogd en kunt dit gesprek starten.</p>
           </div>
           <Link
-            href={`/bedrijf/${company.slug}/dashboard`}
+            href={`/organisatie/${organization.slug}/dashboard`}
             className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
           >
             Open app

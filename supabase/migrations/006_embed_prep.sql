@@ -4,7 +4,7 @@
 
 create table if not exists public.embed_tokens (
   token uuid primary key default gen_random_uuid(),
-  company_id uuid not null references public.companies(id) on delete cascade,
+  organization_id uuid not null references public.organizations(id) on delete cascade,
   scenario_id uuid not null references public.scenarios(id) on delete cascade,
   active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -18,8 +18,8 @@ alter table public.embed_tokens
   add column if not exists created_at timestamptz not null default now(),
   add column if not exists created_by uuid null references auth.users(id);
 
-create index if not exists embed_tokens_company_id_idx
-  on public.embed_tokens (company_id);
+create index if not exists embed_tokens_organization_id_idx
+  on public.embed_tokens (organization_id);
 
 create index if not exists embed_tokens_scenario_id_idx
   on public.embed_tokens (scenario_id);
@@ -42,10 +42,10 @@ create policy embed_tokens_select_in_tenant
   to authenticated
   using (
     public.is_platform_admin()
-    or public.current_company_id() is not distinct from company_id
+    or public.current_organization_id() is not distinct from organization_id
   );
 
--- Only company_admin / platform_admin can create embed tokens (token generation is an admin action).
+-- Only organization_admin / platform_admin can create embed tokens (token generation is an admin action).
 drop policy if exists embed_tokens_insert_admin_only on public.embed_tokens;
 create policy embed_tokens_insert_admin_only
   on public.embed_tokens
@@ -54,8 +54,8 @@ create policy embed_tokens_insert_admin_only
   with check (
     public.is_platform_admin()
     or (
-      public.current_company_id() is not distinct from company_id
-      and public.current_role() = 'company_admin'
+      public.current_organization_id() is not distinct from organization_id
+      and public.current_role() = 'organization_admin'
     )
   );
 
@@ -68,15 +68,15 @@ create policy embed_tokens_update_admin_only
   using (
     public.is_platform_admin()
     or (
-      public.current_company_id() is not distinct from company_id
-      and public.current_role() = 'company_admin'
+      public.current_organization_id() is not distinct from organization_id
+      and public.current_role() = 'organization_admin'
     )
   )
   with check (
     public.is_platform_admin()
     or (
-      public.current_company_id() is not distinct from company_id
-      and public.current_role() = 'company_admin'
+      public.current_organization_id() is not distinct from organization_id
+      and public.current_role() = 'organization_admin'
     )
   );
 

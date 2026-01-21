@@ -29,18 +29,20 @@ import {
 export type AdminUserRow = {
   user_id: string;
   email: string;
-  role: "member" | "company_admin" | "platform_admin";
-  company_slug: string | null;
+  role: "member" | "organization_admin" | "platform_admin";
+  organization_slug: string | null;
 };
 
 export function UsersTable({ users }: { users: AdminUserRow[] }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [confirm, setConfirm] = useState<null | { userId: string; current: AdminUserRow["role"]; next: "member" | "company_admin" }>(
+  const [confirm, setConfirm] = useState<
+    null | { userId: string; current: AdminUserRow["role"]; next: "member" | "organization_admin" }
+  >(
     null
   );
 
-  function onChangeRole(userId: string, current: AdminUserRow["role"], next: "member" | "company_admin") {
+  function onChangeRole(userId: string, current: AdminUserRow["role"], next: "member" | "organization_admin") {
     if (current === "platform_admin") {
       toast.error("Platform admins kun je hier niet aanpassen.");
       return;
@@ -49,7 +51,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
     setConfirm({ userId, current, next });
   }
 
-  function doChangeRole(userId: string, next: "member" | "company_admin") {
+  function doChangeRole(userId: string, next: "member" | "organization_admin") {
     startTransition(async () => {
       const res = await fetch("/api/admin/set-user-role", {
         method: "POST",
@@ -77,7 +79,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
           <TableRow>
             <TableHead>E-mail</TableHead>
             <TableHead>User ID</TableHead>
-            <TableHead>Bedrijf</TableHead>
+            <TableHead>Organisatie</TableHead>
             <TableHead className="text-right">Rol</TableHead>
           </TableRow>
         </TableHeader>
@@ -86,7 +88,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
             <TableRow key={u.user_id}>
               <TableCell className="min-w-0 truncate">{u.email}</TableCell>
               <TableCell className="font-mono text-xs text-muted-foreground">{u.user_id}</TableCell>
-              <TableCell className="text-muted-foreground">{u.company_slug ?? "—"}</TableCell>
+              <TableCell className="text-muted-foreground">{u.organization_slug ?? "—"}</TableCell>
               <TableCell className="text-right">
                 {u.role === "platform_admin" ? (
                   <Badge variant="secondary">Platform admin</Badge>
@@ -94,7 +96,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" disabled={isPending}>
-                        {u.role === "member" ? "Lid" : "Bedrijfsbeheerder"}
+                        {u.role === "member" ? "Lid" : "Organisatiebeheerder"}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
@@ -103,8 +105,8 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
                       <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "member")}>
                         Lid
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "company_admin")}>
-                        Bedrijfsbeheerder
+                      <DropdownMenuItem onClick={() => onChangeRole(u.user_id, u.role, "organization_admin")}>
+                        Organisatiebeheerder
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -120,7 +122,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Rol wijzigen?</AlertDialogTitle>
             <AlertDialogDescription>
-              Wijzig rol naar “{confirm?.next === "member" ? "Lid" : "Bedrijfsbeheerder"}”.
+              Wijzig rol naar “{confirm?.next === "member" ? "Lid" : "Organisatiebeheerder"}”.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

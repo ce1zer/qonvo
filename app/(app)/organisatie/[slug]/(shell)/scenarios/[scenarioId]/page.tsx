@@ -30,7 +30,7 @@ export default async function EditScenarioPage({
         description="Pas je scenario aan en sla op. Verwijderen kan onderaan."
         actions={
           <Button asChild variant="outline">
-            <Link href={`/bedrijf/${slug}/scenarios`}>Terug naar lijst</Link>
+            <Link href={`/organisatie/${slug}/scenarios`}>Terug naar lijst</Link>
           </Button>
         }
       />

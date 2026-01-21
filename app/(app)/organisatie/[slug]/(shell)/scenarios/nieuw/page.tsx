@@ -14,7 +14,7 @@ export default async function NewScenarioPage({ params }: { params: Promise<{ sl
         description="Gebruik een preset of schrijf zelf. Focus op realistische context en concrete instructies."
         actions={
           <Button asChild variant="outline">
-            <Link href={`/bedrijf/${slug}/scenarios`}>Terug naar lijst</Link>
+            <Link href={`/organisatie/${slug}/scenarios`}>Terug naar lijst</Link>
           </Button>
         }
       />

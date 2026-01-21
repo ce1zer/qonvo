@@ -36,12 +36,12 @@ export async function POST(request: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("company_id")
+    .select("organization_id")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile?.company_id) {
-    const res = jsonError(403, "Je account is nog niet gekoppeld aan een bedrijf.");
+  if (profileError || !profile?.organization_id) {
+    const res = jsonError(403, "Je account is nog niet gekoppeld aan een organisatie.");
     applyCookies(res);
     return res;
   }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   const { data: inserted, error } = await supabase
     .from("scenarios")
     .insert({
-      company_id: profile.company_id,
+      organization_id: profile.organization_id,
       name: parsed.data.name,
       persona: parsed.data.persona,
       topic: parsed.data.topic,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     ok: true,
     message: "Scenario opgeslagen.",
     scenarioId: inserted.id,
-    redirectTo: `/bedrijf/${parsed.data.slug}/scenarios`
+    redirectTo: `/organisatie/${parsed.data.slug}/scenarios`
   };
   const response = NextResponse.json(res, { status: 200 });
   applyCookies(response);
