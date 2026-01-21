@@ -14,6 +14,27 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
+function dbErrorPayload(error: unknown) {
+  const e = error as { code?: string; message?: string; details?: string | null; hint?: string | null };
+  if (process.env.NODE_ENV === "production") return undefined;
+  return {
+    code: e?.code ?? null,
+    message: e?.message ?? null,
+    details: e?.details ?? null,
+    hint: e?.hint ?? null
+  };
+}
+
+function mapSpendErrorToStatus(code?: string, message?: string) {
+  // 402 only when it's truly "no credits"/negative balance guard from DB side.
+  if (code === "23514") return 402; // check violation (often used for non-negative guard)
+  if (code === "P0001" && (message ?? "").toLowerCase().includes("credit")) return 402; // raised exception
+  if (code === "42501") return 403; // forbidden
+  if (code === "22023") return 400; // invalid parameter
+  if (code === "23503") return 404; // org not found (FK-ish / custom)
+  return 500;
+}
+
 export async function POST(request: Request) {
   const env = getSupabaseEnv();
   if (!env.N8N_WEBHOOK_URL || !env.N8N_WEBHOOK_SECRET) {
@@ -159,13 +180,18 @@ export async function POST(request: Request) {
   });
 
   if (spendError) {
+    const status = mapSpendErrorToStatus(spendError.code, spendError.message);
     return NextResponse.json(
       {
         ok: false,
-        message: "Je credits zijn op. Koop credits bij om door te gaan.",
-        creditsBalance: organization.credits_balance ?? 0
+        message:
+          status === 402
+            ? "Je credits zijn op. Koop credits bij om door te gaan."
+            : "Credits afschrijven is niet gelukt. Probeer het opnieuw.",
+        creditsBalance: organization.credits_balance ?? 0,
+        dbError: dbErrorPayload(spendError)
       },
-      { status: 402 }
+      { status }
     );
   }
 

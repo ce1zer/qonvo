@@ -15,6 +15,26 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
+function dbErrorPayload(error: unknown) {
+  const e = error as { code?: string; message?: string; details?: string | null; hint?: string | null };
+  if (process.env.NODE_ENV === "production") return undefined;
+  return {
+    code: e?.code ?? null,
+    message: e?.message ?? null,
+    details: e?.details ?? null,
+    hint: e?.hint ?? null
+  };
+}
+
+function mapSpendErrorToStatus(code?: string, message?: string) {
+  if (code === "23514") return 402;
+  if (code === "P0001" && (message ?? "").toLowerCase().includes("credit")) return 402;
+  if (code === "42501") return 403;
+  if (code === "22023") return 400;
+  if (code === "23503") return 404;
+  return 500;
+}
+
 function getIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]?.trim() || "unknown";
@@ -188,13 +208,18 @@ export async function POST(request: Request) {
   });
 
   if (spendError) {
+    const status = mapSpendErrorToStatus(spendError.code, spendError.message);
     return NextResponse.json(
       {
         ok: false,
-        message: "Je credits zijn op. Koop credits bij om door te gaan.",
-        creditsBalance: organization.credits_balance ?? 0
+        message:
+          status === 402
+            ? "Je credits zijn op. Koop credits bij om door te gaan."
+            : "Credits afschrijven is niet gelukt. Probeer het opnieuw.",
+        creditsBalance: organization.credits_balance ?? 0,
+        dbError: dbErrorPayload(spendError)
       },
-      { status: 402 }
+      { status }
     );
   }
 
