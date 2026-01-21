@@ -31,11 +31,10 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
 
   const { data: conversationRows, error: conversationsError } = await supabase
     .from("conversations")
-    // Only show conversations that actually have saved messages.
-    // This prevents opening an "empty" conversation and thinking history disappeared.
-    .select("id, scenario_id, status, mode, started_at, scenarios(name, topic), messages!inner(created_at, role)")
+    // Show all conversations, including ones with 0 messages.
+    // We still fetch the latest message timestamp (if any) to display "Laatst bijgewerkt".
+    .select("id, scenario_id, status, mode, started_at, scenarios(name, topic), messages(created_at)")
     .eq("organization_id", profile.organization_id)
-    .in("messages.role", ["user", "assistant"])
     .order("created_at", { foreignTable: "messages", ascending: false })
     .limit(1, { foreignTable: "messages" })
     .order("started_at", { ascending: false })
@@ -61,7 +60,7 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
     mode: string;
     started_at: string | null;
     scenarios?: { name: string; topic: string } | null;
-    messages?: Array<{ created_at: string; role: string }> | null;
+    messages?: Array<{ created_at: string }> | null;
   }>;
 
   return (
@@ -79,7 +78,7 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
       {conversations.length === 0 ? (
         <EmptyState
           title="Nog geen gesprekken"
-          description="Gesprekken verschijnen hier zodra er minimaal één bericht is verstuurd."
+          description="Start een gesprek vanuit een scenario. Daarna verschijnen je gesprekken hier."
           primaryAction={{ label: "Start gesprek", href: `/organisatie/${slug}/dashboard` }}
           secondaryAction={{ label: "Bekijk scenario’s", href: `/organisatie/${slug}/scenarios` }}
         />
