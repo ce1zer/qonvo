@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { CreateConversationState } from "@/actions/conversations/types";
 
 const BodySchema = z.object({
   slug: z.string().min(1),
   scenarioId: z.string().uuid(),
-  goal: z.string().trim().max(500).optional()
+  goal: z.string().trim().max(500).optional(),
+  publicEmbed: z.boolean().optional(),
+  embedAllowedOrigins: z.array(z.string().min(1)).max(10).optional()
 });
 
 function jsonError(status: number, message: string, fieldErrors?: Record<string, string>) {
@@ -68,7 +71,9 @@ export async function POST(request: Request) {
       started_by: userData.user.id,
       status: "active",
       mode: "text",
-      goal: parsed.data.goal ?? null
+      goal: parsed.data.goal ?? null,
+      public_embed_enabled: Boolean(parsed.data.publicEmbed),
+      embed_allowed_origins: (parsed.data.embedAllowedOrigins ?? []).length > 0 ? parsed.data.embedAllowedOrigins : null
     })
     .select("id")
     .single();
@@ -88,6 +93,20 @@ export async function POST(request: Request) {
       );
     }
     return jsonError(500, "Opslaan is niet gelukt. Probeer het opnieuw.");
+  }
+
+  if (parsed.data.publicEmbed) {
+    try {
+      const admin = createSupabaseAdminClient();
+      await admin.from("conversation_embed_tokens").insert({
+        conversation_id: inserted.id,
+        organization_id: profile.organization_id,
+        active: true,
+        created_by: userData.user.id
+      });
+    } catch {
+      // Best-effort: conversation exists; user can re-enable/regenerate later.
+    }
   }
 
   const res: CreateConversationState = {

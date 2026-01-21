@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type ScenarioOption = {
   id: string;
@@ -35,6 +36,8 @@ export function StartConversationWizard({
   const [query, setQuery] = useState("");
   const [scenarioId, setScenarioId] = useState<string>("");
   const [goal, setGoal] = useState("");
+  const [publicEmbed, setPublicEmbed] = useState(false);
+  const [embedAllowedOrigins, setEmbedAllowedOrigins] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const [state, setState] = useState<CreateConversationState>(initialCreateConversationState);
@@ -56,6 +59,8 @@ export function StartConversationWizard({
     setQuery("");
     setScenarioId("");
     setGoal("");
+    setPublicEmbed(false);
+    setEmbedAllowedOrigins("");
   }
 
   function close() {
@@ -65,6 +70,12 @@ export function StartConversationWizard({
 
   function submit() {
     startTransition(async () => {
+      const origins = embedAllowedOrigins
+        .split(/[\n,]/g)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 10);
+
       const res = await fetch("/api/conversations/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -72,7 +83,9 @@ export function StartConversationWizard({
         body: JSON.stringify({
           slug,
           scenarioId,
-          goal: goal.trim() ? goal : undefined
+          goal: goal.trim() ? goal : undefined,
+          publicEmbed: publicEmbed ? true : undefined,
+          embedAllowedOrigins: origins.length > 0 ? origins : undefined
         })
       }).catch(() => null);
 
@@ -197,6 +210,40 @@ export function StartConversationWizard({
                 <p className="text-xs text-muted-foreground">
                   Tip: schrijf één zin. Dit helpt om het gesprek doelgericht te houden.
                 </p>
+              </div>
+
+              <div className="space-y-3 rounded-lg border bg-card p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="public-embed"
+                    checked={publicEmbed}
+                    onCheckedChange={(v) => setPublicEmbed(Boolean(v))}
+                    disabled={isPending}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="public-embed">Publieke embed (geen login)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Maak direct een embed link voor dit gesprek. Credits worden afgeschreven van jouw organisatie.
+                    </p>
+                  </div>
+                </div>
+
+                {publicEmbed ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="allowed-origins">Toegestane domeinen (optioneel)</Label>
+                    <Textarea
+                      id="allowed-origins"
+                      value={embedAllowedOrigins}
+                      onChange={(e) => setEmbedAllowedOrigins(e.target.value)}
+                      rows={2}
+                      placeholder={"Bijv.\nhttps://example.com\nhttps://app.example.com"}
+                      disabled={isPending}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Laat leeg om overal toe te staan. Eén per regel of gescheiden door komma’s.
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               <DialogFooter className="sm:justify-between">

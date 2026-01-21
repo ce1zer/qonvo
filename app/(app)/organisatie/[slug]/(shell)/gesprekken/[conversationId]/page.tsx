@@ -7,6 +7,7 @@ import type { ChatMessage } from "@/components/chat/types";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SectionCard } from "@/components/app/SectionCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default async function ConversationChatPage({
   params
@@ -18,7 +19,7 @@ export default async function ConversationChatPage({
 
   const { data: conversation, error: convError } = await supabase
     .from("conversations")
-    .select("id, scenario_id, status, mode, started_at, goal")
+    .select("id, scenario_id, status, mode, started_at, goal, public_embed_enabled, embed_allowed_origins")
     .eq("id", conversationId)
     .single();
 
@@ -46,6 +47,15 @@ export default async function ConversationChatPage({
     content: m.content,
     createdAt: m.created_at
   }));
+
+  const { data: embedTokenRow } = await supabase
+    .from("conversation_embed_tokens")
+    .select("token, active")
+    .eq("conversation_id", conversationId)
+    .eq("active", true)
+    .maybeSingle();
+
+  const embedUrl = embedTokenRow?.token ? `/embed/${embedTokenRow.token}` : null;
 
   return (
     <div className="space-y-6">
@@ -90,6 +100,23 @@ export default async function ConversationChatPage({
           </div>
         ) : null}
       </SectionCard>
+
+      {conversation.public_embed_enabled && embedUrl ? (
+        <SectionCard
+          title="Embed (publiek)"
+          description="Deze chat is toegankelijk zonder login. Credits worden afgeschreven van jouw organisatie."
+        >
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Embed URL</p>
+              <Input readOnly value={embedUrl} />
+              <p className="text-xs text-muted-foreground">
+                Gebruik deze URL in een iframe. Tip: stel “Toegestane domeinen” in bij het starten van het gesprek.
+              </p>
+            </div>
+          </div>
+        </SectionCard>
+      ) : null}
 
       <ChatPanel conversationId={conversationId} initialMessages={initialMessages} />
     </div>

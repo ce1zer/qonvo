@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { EmbedChatPanel } from "@/components/embed/EmbedChatPanel";
+import type { ChatMessage } from "@/components/chat/types";
 import { TenantProvider } from "@/components/tenant/TenantContext";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 
@@ -31,6 +34,58 @@ function LoginRequired({ token }: { token: string }) {
 
 export default async function EmbedChatPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  const admin = createSupabaseAdminClient();
+
+  // 1) Public embed per conversation (no login)
+  const { data: publicToken } = await admin
+    .from("conversation_embed_tokens")
+    .select("token, conversation_id, organization_id, active")
+    .eq("token", token)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (publicToken?.conversation_id) {
+    const { data: conversation } = await admin
+      .from("conversations")
+      .select("id, scenario_id, public_embed_enabled")
+      .eq("id", publicToken.conversation_id)
+      .maybeSingle();
+
+    if (!conversation || !conversation.public_embed_enabled) return notFound();
+
+    const { data: scenario } = await admin
+      .from("scenarios")
+      .select("id, name, topic")
+      .eq("id", conversation.scenario_id)
+      .maybeSingle();
+
+    const { data: messagesRows } = await admin
+      .from("messages")
+      .select("id, role, content, created_at")
+      .eq("conversation_id", conversation.id)
+      .in("role", ["user", "assistant"])
+      .order("created_at", { ascending: true })
+      .limit(200);
+
+    const initialMessages: ChatMessage[] = (messagesRows ?? []).map((m) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      createdAt: m.created_at
+    }));
+
+    return (
+      <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <header className="mb-6 space-y-1">
+          <h1 className="text-xl font-semibold tracking-tight">{scenario?.name ?? "Chat"}</h1>
+          {scenario?.topic ? <p className="text-sm text-zinc-600">{scenario.topic}</p> : null}
+        </header>
+        <EmbedChatPanel token={token} conversationId={conversation.id} initialMessages={initialMessages} />
+      </div>
+    );
+  }
+
+  // 2) Legacy scenario embed (requires login)
   const supabase = await createSupabaseServerClient();
 
   const { data: userData } = await supabase.auth.getUser();
