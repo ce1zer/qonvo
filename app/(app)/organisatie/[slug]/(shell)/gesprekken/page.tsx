@@ -31,8 +31,13 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
 
   const { data: conversationRows, error: conversationsError } = await supabase
     .from("conversations")
-    .select("id, scenario_id, status, mode, started_at")
+    // Only show conversations that actually have saved messages.
+    // This prevents opening an "empty" conversation and thinking history disappeared.
+    .select("id, scenario_id, status, mode, started_at, scenarios(name, topic), messages!inner(created_at, role)")
     .eq("organization_id", profile.organization_id)
+    .in("messages.role", ["user", "assistant"])
+    .order("created_at", { foreignTable: "messages", ascending: false })
+    .limit(1, { foreignTable: "messages" })
     .order("started_at", { ascending: false })
     .limit(100);
 
@@ -55,15 +60,9 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
     status: string;
     mode: string;
     started_at: string | null;
+    scenarios?: { name: string; topic: string } | null;
+    messages?: Array<{ created_at: string; role: string }> | null;
   }>;
-
-  const scenarioIds = Array.from(new Set(conversations.map((c) => c.scenario_id).filter(Boolean)));
-  const { data: scenarioRows } =
-    scenarioIds.length > 0
-      ? await supabase.from("scenarios").select("id, name, topic").in("id", scenarioIds)
-      : { data: [] as Array<{ id: string; name: string; topic: string }> };
-
-  const scenarioById = new Map((scenarioRows ?? []).map((s) => [s.id, s]));
 
   return (
     <div className="space-y-6">
@@ -80,7 +79,7 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
       {conversations.length === 0 ? (
         <EmptyState
           title="Nog geen gesprekken"
-          description="Start een gesprek vanuit een scenario. Daarna verschijnen je gesprekken hier, inclusief status en feedback."
+          description="Gesprekken verschijnen hier zodra er minimaal één bericht is verstuurd."
           primaryAction={{ label: "Start gesprek", href: `/organisatie/${slug}/dashboard` }}
           secondaryAction={{ label: "Bekijk scenario’s", href: `/organisatie/${slug}/scenarios` }}
         />
@@ -93,14 +92,16 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
                   <TableHead>Scenario</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Modus</TableHead>
-                  <TableHead>Gestart</TableHead>
+                  <TableHead>Laatst bijgewerkt</TableHead>
                   <TableHead className="text-right">Actie</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {conversations.map((c) => {
-                  const scenario = scenarioById.get(c.scenario_id);
-                  const started = c.started_at ? new Date(c.started_at).toLocaleString("nl-NL") : "—";
+                  const scenario = c.scenarios ?? null;
+                  const lastMessageAt = c.messages?.[0]?.created_at ?? null;
+                  const updatedAtIso = lastMessageAt ?? c.started_at ?? null;
+                  const updated = updatedAtIso ? new Date(updatedAtIso).toLocaleString("nl-NL") : "—";
                   const status = String(c.status ?? "");
                   const isActive = status === "active";
                   const mode = String(c.mode ?? "");
@@ -114,7 +115,7 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
                         <Badge variant={isActive ? "secondary" : "outline"}>{status || "—"}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{mode || "—"}</TableCell>
-                      <TableCell className="text-muted-foreground">{started}</TableCell>
+                      <TableCell className="text-muted-foreground">{updated}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/organisatie/${slug}/gesprekken/${c.id}`}>Openen</Link>

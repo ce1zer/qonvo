@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { SectionCard } from "@/components/app/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/EmptyState";
 
 export default async function ConversationChatPage({
   params
@@ -116,6 +117,15 @@ export default async function ConversationChatPage({
             </div>
           </div>
         </SectionCard>
+      ) : null}
+
+      {initialMessages.length === 0 ? (
+        <EmptyState
+          title="Geen berichten gevonden"
+          description="Dit gesprek bevat (nog) geen opgeslagen berichten. Dit kan gebeuren als een gesprek wel is aangemaakt, maar er nooit succesvol een bericht is verstuurd."
+          primaryAction={{ label: "Terug naar gesprekken", href: `/organisatie/${slug}/gesprekken` }}
+          secondaryAction={{ label: "Start nieuw gesprek", href: `/organisatie/${slug}/dashboard` }}
+        />
       ) : null}
 
       <ChatPanel conversationId={conversationId} initialMessages={initialMessages} />
