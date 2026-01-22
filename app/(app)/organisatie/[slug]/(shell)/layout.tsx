@@ -4,8 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { TenantProvider, type TenantOrganization, type TenantProfile } from "@/components/tenant/TenantContext";
 import { Breadcrumbs } from "@/components/tenant/Breadcrumbs";
-import { TenantCreditsBadge } from "@/components/tenant/TenantCreditsBadge";
-import { AccountMenu } from "@/components/tenant/AccountMenu";
+import { TenantSidebarFooter } from "@/components/tenant/TenantSidebarFooter";
 import { AppShell } from "@/components/app/AppShell";
 import type { NavItem } from "@/components/app/types";
 
@@ -99,13 +98,8 @@ export default async function TenantShellLayout({
         sidebarSubtitle="Organisatie"
         sidebarTitle={organization.name}
         navItems={navItems}
+        sidebarFooter={<TenantSidebarFooter />}
         topbarLeft={<Breadcrumbs />}
-        topbarRight={
-          <>
-            <TenantCreditsBadge />
-            <AccountMenu />
-          </>
-        }
       >
         {children}
       </AppShell>

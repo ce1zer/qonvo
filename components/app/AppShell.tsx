@@ -19,6 +19,7 @@ export function AppShell({
   sidebarTitle,
   sidebarSubtitle,
   navItems,
+  sidebarFooter,
   topbarLeft,
   topbarRight,
   children,
@@ -27,6 +28,7 @@ export function AppShell({
   sidebarTitle?: ReactNode;
   sidebarSubtitle?: ReactNode;
   navItems: NavItem[];
+  sidebarFooter?: ReactNode;
   topbarLeft?: ReactNode;
   topbarRight?: ReactNode;
   children: ReactNode;
@@ -44,6 +46,11 @@ export function AppShell({
             {sidebarTitle ? <div className="text-sm font-semibold">{sidebarTitle}</div> : null}
           </div>
           <SidebarNav items={navItems} />
+          {sidebarFooter ? (
+            <div className="mt-auto border-t pt-4">
+              <div className="space-y-2">{sidebarFooter}</div>
+            </div>
+          ) : null}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -72,6 +79,11 @@ export function AppShell({
                           {sidebarTitle ? <div className="text-sm font-semibold">{sidebarTitle}</div> : null}
                         </div>
                         <SidebarNav items={navItems} />
+                        {sidebarFooter ? (
+                          <div className="border-t pt-4">
+                            <div className="space-y-2">{sidebarFooter}</div>
+                          </div>
+                        ) : null}
                       </div>
                     </DialogContent>
                   </Dialog>
