@@ -21,6 +21,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger
 } from "@/components/ui/dialog";
 import {
@@ -202,7 +203,7 @@ export function ConversationActionsMenu({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Instellingen</DialogTitle>
-            <p className="text-sm text-muted-foreground">Bewerk doel, embed, status en modus.</p>
+            <DialogDescription>Bewerk doel, embed, status en modus.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
