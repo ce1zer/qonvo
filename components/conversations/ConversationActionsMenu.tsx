@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function normalizeOriginsInput(value: string): string[] {
   return value
@@ -68,8 +69,8 @@ export function ConversationActionsMenu({
   const [embedAllowedOrigins, setEmbedAllowedOrigins] = useState(
     (conversation.embedAllowedOrigins ?? []).join("\n")
   );
-  const [status, setStatus] = useState(conversation.status ?? "");
-  const [mode, setMode] = useState(conversation.mode ?? "");
+  const [status, setStatus] = useState((conversation.status as "active" | "closed") ?? "active");
+  const [mode, setMode] = useState((conversation.mode as "text" | "voice") ?? "text");
 
   const embedUrl = useMemo(() => {
     if (!conversation.embedToken) return null;
@@ -221,25 +222,28 @@ export function ConversationActionsMenu({
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Input
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                placeholder="Bijv. active / closed"
-                disabled={isPending}
-              />
+              <Select value={status} onValueChange={(v) => setStatus(v as "active" | "closed")} disabled={isPending}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Kies status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Actief</SelectItem>
+                  <SelectItem value="closed">Gesloten</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="mode">Modus</Label>
-              <Input
-                id="mode"
-                value={mode}
-                onChange={(e) => setMode(e.target.value)}
-                placeholder="text / voice"
-                disabled={isPending}
-              />
-              <p className="text-xs text-muted-foreground">Toegestane waarden: text, voice.</p>
+              <Select value={mode} onValueChange={(v) => setMode(v as "text" | "voice")} disabled={isPending}>
+                <SelectTrigger id="mode">
+                  <SelectValue placeholder="Kies modus" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Tekst</SelectItem>
+                  <SelectItem value="voice">Voice</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-3 rounded-lg border bg-card p-4">
