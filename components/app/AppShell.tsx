@@ -38,14 +38,16 @@ export function AppShell({
     <div className={cn("min-h-screen bg-muted/30", className)}>
       <div className="flex min-h-screen w-full">
         {/* Desktop sidebar */}
-        <aside className="hidden w-64 flex-col gap-6 border-r bg-background p-5 md:flex">
+        <aside className="hidden w-64 flex-col gap-6 border-r bg-background p-5 md:sticky md:top-0 md:flex md:h-screen">
           <div className="space-y-1">
             {sidebarSubtitle ? (
               <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{sidebarSubtitle}</div>
             ) : null}
             {sidebarTitle ? <div className="text-sm font-semibold">{sidebarTitle}</div> : null}
           </div>
-          <SidebarNav items={navItems} />
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <SidebarNav items={navItems} />
+          </div>
           {sidebarFooter ? (
             <div className="mt-auto border-t pt-4">
               <div className="space-y-2">{sidebarFooter}</div>
