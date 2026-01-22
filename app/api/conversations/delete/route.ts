@@ -52,6 +52,20 @@ export async function POST(request: Request) {
   const { error: messagesDeleteError } = await admin.from("messages").delete().eq("conversation_id", conversationId);
   if (messagesDeleteError) {
     console.error("[conversations.delete] messages delete failed", { messagesDeleteError, conversationId });
+    const code = String((messagesDeleteError as { code?: string } | null)?.code ?? "");
+    const msg = String((messagesDeleteError as { message?: string } | null)?.message ?? "");
+    if (code === "42501" && msg.toLowerCase().includes("append-only")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message:
+            "Verwijderen is geblokkeerd doordat de database de messages tabel als append-only afdwingt. " +
+            "Pas de trigger aan om service_role deletes toe te staan (zie migratie 014_allow_service_role_delete_append_only.sql).",
+          dbError: dbErrorPayload(messagesDeleteError)
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { ok: false, message: "Verwijderen lukt niet (berichten).", dbError: dbErrorPayload(messagesDeleteError) },
       { status: 500 }
