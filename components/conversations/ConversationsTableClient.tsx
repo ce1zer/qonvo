@@ -69,7 +69,7 @@ export function ConversationsTableClient({
                       <Link href={`/organisatie/${slug}/gesprekken/${c.id}`}>Openen</Link>
                     </Button>
                     {canManage ? (
-                      <ConversationActionsMenu slug={slug} conversation={c} />
+                      <ConversationActionsMenu conversation={c} />
                     ) : (
                       <span className="sr-only">Acties</span>
                     )}

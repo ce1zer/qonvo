@@ -8,6 +8,12 @@ import { ConversationHeaderActions } from "@/components/conversations/Conversati
 import { SectionCard } from "@/components/app/SectionCard";
 import { ConversationReviewPanel } from "@/components/conversations/ConversationReviewPanel";
 
+type ConversationReview = {
+  feedback?: Array<{ question: string; answer: string }>;
+  feedbackSummary?: string;
+  isPassed?: boolean;
+};
+
 export default async function ConversationChatPage({
   params
 }: {
@@ -88,7 +94,7 @@ export default async function ConversationChatPage({
         <SectionCard title="Beoordeling" description="Feedback op je gesprek. Wordt automatisch opgehaald na 👋.">
           <ConversationReviewPanel
             conversationId={conversationId}
-            initialReview={(reviewRow?.review_json as unknown as any) ?? null}
+            initialReview={(reviewRow?.review_json as unknown as ConversationReview) ?? null}
             isInactive={isInactive}
           />
         </SectionCard>

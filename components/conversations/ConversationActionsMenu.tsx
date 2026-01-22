@@ -35,7 +35,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,10 +53,8 @@ async function copyToClipboard(text: string) {
 }
 
 export function ConversationActionsMenu({
-  slug,
   conversation
 }: {
-  slug: string;
   conversation: ConversationsListItem;
 }) {
   const router = useRouter();
