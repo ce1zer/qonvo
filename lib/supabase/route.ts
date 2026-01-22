@@ -9,7 +9,7 @@ export function createSupabaseRouteClient(request: NextRequest) {
   // and apply them to the final NextResponse that we return.
   const cookiesToSet: { name: string; value: string; options: CookieOptions }[] = [];
 
-  const supabase = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+  const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
