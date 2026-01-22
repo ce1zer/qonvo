@@ -64,7 +64,7 @@ export function ConversationHeaderActions(props: Props) {
   const [goal, setGoal] = useState(props.goal ?? "");
   const [publicEmbedEnabled, setPublicEmbedEnabled] = useState(Boolean(props.publicEmbedEnabled));
   const [embedAllowedOrigins, setEmbedAllowedOrigins] = useState((props.embedAllowedOrigins ?? []).join("\n"));
-  const [status, setStatus] = useState((props.status as "active" | "closed") ?? "active");
+  const [status, setStatus] = useState((props.status as "active" | "inactive") ?? "active");
   const [mode, setMode] = useState((props.mode as "text" | "voice") ?? "text");
 
   const embedUrl = useMemo(() => {
@@ -262,13 +262,13 @@ export function ConversationHeaderActions(props: Props) {
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as "active" | "closed")} disabled={isPending}>
+              <Select value={status} onValueChange={(v) => setStatus(v as "active" | "inactive")} disabled={isPending}>
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Actief</SelectItem>
-                  <SelectItem value="closed">Gesloten</SelectItem>
+                  <SelectItem value="inactive">Inactief</SelectItem>
                 </SelectContent>
               </Select>
             </div>

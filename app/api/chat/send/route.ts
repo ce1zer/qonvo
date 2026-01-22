@@ -60,12 +60,13 @@ export async function POST(request: Request) {
   // Conversation must belong to the user's organization (tenant check)
   const { data: conversation, error: convError } = await supabase
     .from("conversations")
-    .select("id, organization_id, scenario_id, mode")
+    .select("id, organization_id, scenario_id, mode, status")
     .eq("id", parsed.data.conversationId)
     .eq("organization_id", profile.organization_id)
     .single();
 
   if (convError || !conversation) return jsonError(404, "Gesprek niet gevonden.");
+  if (conversation.status !== "active") return jsonError(409, "Dit gesprek is inactief.");
 
   const { data: organization, error: organizationError } = await supabase
     .from("organizations")

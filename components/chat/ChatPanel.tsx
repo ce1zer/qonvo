@@ -14,10 +14,12 @@ function makeTempId() {
 
 export function ChatPanel({
   conversationId,
-  initialMessages
+  initialMessages,
+  isInactive = false
 }: {
   conversationId: string;
   initialMessages: ChatMessage[];
+  isInactive?: boolean;
 }) {
   const { creditsBalance, setCreditsBalance } = useTenant();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -30,6 +32,10 @@ export function ChatPanel({
   }, [initialMessages]);
 
   async function send(userMessage: string) {
+    if (isInactive) {
+      toast.error("Dit gesprek is inactief.");
+      return;
+    }
     if (creditsBalance <= 0) {
       toast.error("Je credits zijn op. Koop credits bij om door te gaan.");
       return;
@@ -57,7 +63,8 @@ export function ChatPanel({
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? { ...m, status: "failed" as const } : m))
       );
-      toast.error("Er ging iets mis met de AI-verbinding. Probeer opnieuw.");
+      const json = (await res?.json().catch(() => null)) as { message?: string } | null;
+      toast.error(json?.message ?? "Er ging iets mis met de AI-verbinding. Probeer opnieuw.");
       return;
     }
 
@@ -115,6 +122,11 @@ export function ChatPanel({
   return (
     <div className="flex min-h-[60vh] flex-col gap-4">
       <ChatThread messages={messages} isTyping={isTyping} />
+      {isInactive ? (
+        <div className="rounded-lg border border-zinc-200 bg-muted/40 p-4 text-sm text-foreground">
+          Dit gesprek is <span className="font-medium">inactief</span>. Je kunt het gesprek nog bekijken, maar geen nieuwe berichten sturen.
+        </div>
+      ) : null}
       {creditsBalance <= 0 ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Je credits zijn op. Koop credits bij om door te gaan.
@@ -125,8 +137,10 @@ export function ChatPanel({
         onChange={setText}
         onSubmit={onSubmit}
         onKeyDown={onKeyDown}
-        disabled={isPending || creditsBalance <= 0}
-        helperText={isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."}
+        disabled={isPending || creditsBalance <= 0 || isInactive}
+        helperText={
+          isInactive ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
+        }
       />
     </div>
   );

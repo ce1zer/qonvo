@@ -30,6 +30,12 @@ export function ConversationsTableClient({
   conversations: ConversationsListItem[];
   canManage: boolean;
 }) {
+  function statusLabel(status: string) {
+    if (status === "active") return "Actief";
+    if (status === "inactive") return "Inactief";
+    return status || "—";
+  }
+
   return (
     <DataTableShell>
       <Table>
@@ -53,7 +59,7 @@ export function ConversationsTableClient({
                   {c.scenario?.topic ? <p className="truncate text-xs text-muted-foreground">{c.scenario.topic}</p> : null}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={isActive ? "secondary" : "outline"}>{c.status || "—"}</Badge>
+                  <Badge variant={isActive ? "secondary" : "outline"}>{statusLabel(c.status)}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{c.mode || "—"}</TableCell>
                 <TableCell className="text-muted-foreground">{updated}</TableCell>

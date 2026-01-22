@@ -14,11 +14,13 @@ function makeTempId() {
 export function EmbedChatPanel({
   token,
   conversationId,
-  initialMessages
+  initialMessages,
+  isInactive = false
 }: {
   token: string;
   conversationId: string;
   initialMessages: ChatMessage[];
+  isInactive?: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
@@ -31,6 +33,10 @@ export function EmbedChatPanel({
   }, [initialMessages]);
 
   async function send(userMessage: string) {
+    if (isInactive) {
+      toast.error("Dit gesprek is inactief.");
+      return;
+    }
     if (creditsBalance !== null && creditsBalance <= 0) {
       toast.error("Je credits zijn op. Koop credits bij om door te gaan.");
       return;
@@ -77,6 +83,13 @@ export function EmbedChatPanel({
       return;
     }
 
+    if (res.status === 409) {
+      setIsTyping(false);
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, status: "failed" as const } : m)));
+      toast.error(json?.message ?? "Dit gesprek is inactief.");
+      return;
+    }
+
     if (!res.ok) {
       setIsTyping(false);
       setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, status: "failed" as const } : m)));
@@ -119,6 +132,11 @@ export function EmbedChatPanel({
   return (
     <div className="flex min-h-[60vh] flex-col gap-4">
       <ChatThread messages={messages} isTyping={isTyping} />
+      {isInactive ? (
+        <div className="rounded-lg border border-zinc-200 bg-muted/40 p-4 text-sm text-foreground">
+          Dit gesprek is <span className="font-medium">inactief</span>. Je kunt het gesprek nog bekijken, maar geen nieuwe berichten sturen.
+        </div>
+      ) : null}
       {creditsBalance !== null && creditsBalance <= 0 ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Je credits zijn op. Koop credits bij om door te gaan.
@@ -129,8 +147,10 @@ export function EmbedChatPanel({
         onChange={setText}
         onSubmit={onSubmit}
         onKeyDown={onKeyDown}
-        disabled={isPending || (creditsBalance !== null && creditsBalance <= 0)}
-        helperText={isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."}
+        disabled={isPending || isInactive || (creditsBalance !== null && creditsBalance <= 0)}
+        helperText={
+          isInactive ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
+        }
       />
     </div>
   );

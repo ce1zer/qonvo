@@ -73,7 +73,7 @@ export default async function ConversationChatPage({
         }
       />
 
-      <ChatPanel conversationId={conversationId} initialMessages={initialMessages} />
+      <ChatPanel conversationId={conversationId} initialMessages={initialMessages} isInactive={conversation.status !== "active"} />
     </div>
   );
 }

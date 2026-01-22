@@ -9,12 +9,23 @@ const BodySchema = z.object({
   goal: z.string().trim().max(500).nullable().optional(),
   publicEmbedEnabled: z.boolean().optional(),
   embedAllowedOrigins: z.array(z.string().min(1)).max(10).nullable().optional(),
-  status: z.string().trim().min(1).max(32).nullable().optional(),
+  status: z.enum(["active", "inactive"]).nullable().optional(),
   mode: z.enum(["text", "voice"]).nullable().optional()
 });
 
 function jsonError(status: number, message: string) {
   return NextResponse.json({ ok: false, message }, { status });
+}
+
+function dbErrorPayload(error: unknown) {
+  const e = error as { code?: string; message?: string; details?: string | null; hint?: string | null };
+  if (process.env.NODE_ENV === "production") return undefined;
+  return {
+    code: e?.code ?? null,
+    message: e?.message ?? null,
+    details: e?.details ?? null,
+    hint: e?.hint ?? null
+  };
 }
 
 export async function POST(request: Request) {
@@ -56,7 +67,13 @@ export async function POST(request: Request) {
     .eq("id", parsed.data.conversationId)
     .eq("organization_id", conv.organization_id);
 
-  if (updateError) return jsonError(500, "Opslaan lukt niet. Probeer het opnieuw.");
+  if (updateError) {
+    console.error("[conversations.update] update failed", { updateError, conversationId: parsed.data.conversationId });
+    return NextResponse.json(
+      { ok: false, message: "Opslaan lukt niet. Probeer het opnieuw.", dbError: dbErrorPayload(updateError) },
+      { status: 500 }
+    );
+  }
 
   // If public embed is enabled, ensure an active token exists.
   if (parsed.data.publicEmbedEnabled === true) {

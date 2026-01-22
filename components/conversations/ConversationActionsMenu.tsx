@@ -69,7 +69,7 @@ export function ConversationActionsMenu({
   const [embedAllowedOrigins, setEmbedAllowedOrigins] = useState(
     (conversation.embedAllowedOrigins ?? []).join("\n")
   );
-  const [status, setStatus] = useState((conversation.status as "active" | "closed") ?? "active");
+  const [status, setStatus] = useState((conversation.status as "active" | "inactive") ?? "active");
   const [mode, setMode] = useState((conversation.mode as "text" | "voice") ?? "text");
 
   const embedUrl = useMemo(() => {
@@ -222,13 +222,13 @@ export function ConversationActionsMenu({
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as "active" | "closed")} disabled={isPending}>
+              <Select value={status} onValueChange={(v) => setStatus(v as "active" | "inactive")} disabled={isPending}>
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Kies status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Actief</SelectItem>
-                  <SelectItem value="closed">Gesloten</SelectItem>
+                  <SelectItem value="inactive">Inactief</SelectItem>
                 </SelectContent>
               </Select>
             </div>

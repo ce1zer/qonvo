@@ -81,12 +81,13 @@ export async function POST(request: Request) {
   // Load conversation settings and scenario context
   const { data: conversation, error: convError } = await admin
     .from("conversations")
-    .select("id, organization_id, scenario_id, mode, public_embed_enabled, embed_allowed_origins")
+    .select("id, organization_id, scenario_id, mode, status, public_embed_enabled, embed_allowed_origins")
     .eq("id", parsed.data.conversationId)
     .maybeSingle();
 
   if (convError) return jsonError(500, "Gesprek laden lukt niet.");
   if (!conversation) return jsonError(404, "Gesprek niet gevonden.");
+  if (conversation.status !== "active") return jsonError(409, "Dit gesprek is inactief.");
   if (!conversation.public_embed_enabled) return jsonError(403, "Deze embed is niet publiek.");
   if (conversation.organization_id !== tokenRow.organization_id) return jsonError(403, "Geen toegang.");
 

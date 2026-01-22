@@ -47,7 +47,7 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
   if (publicToken?.conversation_id) {
     const { data: conversation } = await admin
       .from("conversations")
-      .select("id, scenario_id, public_embed_enabled")
+      .select("id, scenario_id, status, public_embed_enabled")
       .eq("id", publicToken.conversation_id)
       .maybeSingle();
 
@@ -80,7 +80,12 @@ export default async function EmbedChatPage({ params }: { params: Promise<{ toke
           <h1 className="text-xl font-semibold tracking-tight">{scenario?.name ?? "Chat"}</h1>
           {scenario?.topic ? <p className="text-sm text-zinc-600">{scenario.topic}</p> : null}
         </header>
-        <EmbedChatPanel token={token} conversationId={conversation.id} initialMessages={initialMessages} />
+        <EmbedChatPanel
+          token={token}
+          conversationId={conversation.id}
+          initialMessages={initialMessages}
+          isInactive={conversation.status !== "active"}
+        />
       </div>
     );
   }
