@@ -68,9 +68,12 @@ export default async function GesprekkenPage({ params }: { params: Promise<{ slu
   const conversations: ConversationsListItem[] = (conversationRows ?? []).map((c) => {
     const lastMessageAt = (c as { messages?: Array<{ created_at: string }> | null }).messages?.[0]?.created_at ?? null;
     const updatedAtIso = lastMessageAt ?? (c as { started_at: string | null }).started_at ?? null;
+    const scenariosRaw = (c as unknown as { scenarios?: unknown }).scenarios;
+    const scenario =
+      (Array.isArray(scenariosRaw) ? (scenariosRaw[0] as unknown) : scenariosRaw) as { name: string; topic: string } | null | undefined;
     return {
       id: c.id,
-      scenario: (c as { scenarios?: { name: string; topic: string } | null }).scenarios ?? null,
+      scenario: scenario ?? null,
       status: String((c as { status?: string | null }).status ?? ""),
       mode: String((c as { mode?: string | null }).mode ?? ""),
       startedAt: (c as { started_at: string | null }).started_at ?? null,
