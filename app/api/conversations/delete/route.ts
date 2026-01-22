@@ -12,6 +12,17 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
+function dbErrorPayload(error: unknown) {
+  const e = error as { code?: string; message?: string; details?: string | null; hint?: string | null };
+  if (process.env.NODE_ENV === "production") return undefined;
+  return {
+    code: e?.code ?? null,
+    message: e?.message ?? null,
+    details: e?.details ?? null,
+    hint: e?.hint ?? null
+  };
+}
+
 export async function POST(request: Request) {
   const bodyJson = await request.json().catch(() => null);
   const parsed = BodySchema.safeParse(bodyJson);
@@ -34,8 +45,46 @@ export async function POST(request: Request) {
     return jsonError(403, "Geen toegang.");
   }
 
-  const { error: delError } = await admin.from("conversations").delete().eq("id", parsed.data.conversationId);
-  if (delError) return jsonError(500, "Verwijderen lukt niet. Probeer het opnieuw.");
+  // Defensive delete order: depending on the DB FK setup, conversations might not cascade.
+  // We delete known dependents first to prevent FK violations.
+  const conversationId = parsed.data.conversationId;
+
+  const { error: messagesDeleteError } = await admin.from("messages").delete().eq("conversation_id", conversationId);
+  if (messagesDeleteError) {
+    console.error("[conversations.delete] messages delete failed", { messagesDeleteError, conversationId });
+    return NextResponse.json(
+      { ok: false, message: "Verwijderen lukt niet (berichten).", dbError: dbErrorPayload(messagesDeleteError) },
+      { status: 500 }
+    );
+  }
+
+  const { error: tokensDeleteError } = await admin
+    .from("conversation_embed_tokens")
+    .delete()
+    .eq("conversation_id", conversationId);
+  if (tokensDeleteError) {
+    console.error("[conversations.delete] embed tokens delete failed", { tokensDeleteError, conversationId });
+    return NextResponse.json(
+      { ok: false, message: "Verwijderen lukt niet (embed tokens).", dbError: dbErrorPayload(tokensDeleteError) },
+      { status: 500 }
+    );
+  }
+
+  // If credit_ledger has a FK to conversations, remove related rows so the conversation can be deleted.
+  const { error: ledgerDeleteError } = await admin.from("credit_ledger").delete().eq("conversation_id", conversationId);
+  if (ledgerDeleteError) {
+    // Best-effort: only fail if it blocks deletion later. Log for debugging.
+    console.error("[conversations.delete] credit ledger delete failed", { ledgerDeleteError, conversationId });
+  }
+
+  const { error: delError } = await admin.from("conversations").delete().eq("id", conversationId);
+  if (delError) {
+    console.error("[conversations.delete] conversation delete failed", { delError, conversationId });
+    return NextResponse.json(
+      { ok: false, message: "Verwijderen lukt niet. Probeer het opnieuw.", dbError: dbErrorPayload(delError) },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true, message: "Verwijderd." }, { status: 200 });
 }
