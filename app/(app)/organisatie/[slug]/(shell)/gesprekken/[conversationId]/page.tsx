@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -6,8 +5,8 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import type { ChatMessage } from "@/components/chat/types";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SectionCard } from "@/components/app/SectionCard";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ConversationHeaderActions } from "@/components/conversations/ConversationHeaderActions";
 
 export default async function ConversationChatPage({
   params
@@ -64,42 +63,19 @@ export default async function ConversationChatPage({
         description={`Scenario: ${scenario.name} · Onderwerp: ${scenario.topic}`}
         actions={
           <>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              disabled
-              aria-label="Binnenkort beschikbaar"
-              title="Binnenkort beschikbaar"
-            >
-              <span aria-hidden>🎤</span>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/organisatie/${slug}/gesprekken`}>Terug naar gesprekken</Link>
-            </Button>
+            <ConversationHeaderActions
+              slug={slug}
+              conversationId={conversationId}
+              status={String(conversation.status ?? "active")}
+              mode={String(conversation.mode ?? "text")}
+              goal={conversation.goal ?? null}
+              publicEmbedEnabled={Boolean(conversation.public_embed_enabled)}
+              embedAllowedOrigins={(conversation.embed_allowed_origins ?? null) as string[] | null}
+              embedToken={embedTokenRow?.token ?? null}
+            />
           </>
         }
       />
-
-      <SectionCard>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
-            <p className="text-sm font-medium">{conversation.status}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Modus</p>
-            <p className="text-sm font-medium">{conversation.mode}</p>
-          </div>
-        </div>
-
-        {conversation.goal ? (
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Doel</p>
-            <p className="text-sm">{conversation.goal}</p>
-          </div>
-        ) : null}
-      </SectionCard>
 
       {conversation.public_embed_enabled && embedUrl ? (
         <SectionCard
