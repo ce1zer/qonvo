@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ChatThread } from "@/components/chat/ChatThread";
@@ -21,11 +22,13 @@ export function ChatPanel({
   initialMessages: ChatMessage[];
   isInactive?: boolean;
 }) {
+  const router = useRouter();
   const { creditsBalance, setCreditsBalance } = useTenant();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [reviewTriggered, setReviewTriggered] = useState(false);
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -102,6 +105,28 @@ export function ChatPanel({
       ];
     });
     setIsTyping(false);
+
+    // If the assistant ends the conversation (👋), trigger a review pull (Pattern A).
+    if (!reviewTriggered && typeof assistantMessage === "string" && assistantMessage.includes("👋")) {
+      setReviewTriggered(true);
+      startTransition(async () => {
+        const res = await fetch("/api/conversations/review/get-or-create", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ conversationId })
+        }).catch(() => null);
+
+        const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+        if (!res || !res.ok || !json?.ok) {
+          toast.error(json?.message ?? "Beoordeling ophalen lukt niet.");
+          return;
+        }
+
+        toast.success("Beoordeling beschikbaar.");
+        router.refresh();
+      });
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

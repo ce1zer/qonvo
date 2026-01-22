@@ -5,6 +5,8 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import type { ChatMessage } from "@/components/chat/types";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ConversationHeaderActions } from "@/components/conversations/ConversationHeaderActions";
+import { SectionCard } from "@/components/app/SectionCard";
+import { ConversationReviewPanel } from "@/components/conversations/ConversationReviewPanel";
 
 export default async function ConversationChatPage({
   params
@@ -52,6 +54,12 @@ export default async function ConversationChatPage({
     .eq("active", true)
     .maybeSingle();
 
+  const { data: reviewRow } = await supabase
+    .from("conversation_reviews")
+    .select("review_json")
+    .eq("conversation_id", conversationId)
+    .maybeSingle();
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -72,6 +80,13 @@ export default async function ConversationChatPage({
           </>
         }
       />
+
+      <SectionCard title="Beoordeling" description="Feedback op je gesprek. Wordt automatisch opgehaald na 👋.">
+        <ConversationReviewPanel
+          conversationId={conversationId}
+          initialReview={(reviewRow?.review_json as unknown as any) ?? null}
+        />
+      </SectionCard>
 
       <ChatPanel conversationId={conversationId} initialMessages={initialMessages} isInactive={conversation.status !== "active"} />
     </div>
