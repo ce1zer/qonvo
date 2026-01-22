@@ -7,6 +7,7 @@ import { Link2, Settings, Trash2 } from "lucide-react";
 
 import { useTenant } from "@/components/tenant/TenantContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,8 @@ export function ConversationHeaderActions(props: Props) {
   const [isPending, startTransition] = useTransition();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const [embedLink, setEmbedLink] = useState<string | null>(null);
 
   const [goal, setGoal] = useState(props.goal ?? "");
   const [publicEmbedEnabled, setPublicEmbedEnabled] = useState(Boolean(props.publicEmbedEnabled));
@@ -97,23 +100,30 @@ export function ConversationHeaderActions(props: Props) {
     return `${window.location.origin}/embed/${token}`;
   }
 
-  function onShareEmbed() {
+  function onOpenEmbed() {
     startTransition(async () => {
       try {
+        if (!publicEmbedEnabled) return;
+        setEmbedOpen(true);
+        // Pre-fill from existing token if we have it.
+        if (embedUrl) setEmbedLink(embedUrl);
         const url = await ensureEmbedUrl();
-        if (!url) return;
-
-        // Prefer native share when available.
-        if (typeof navigator !== "undefined" && "share" in navigator) {
-          // @ts-expect-error - TS doesn't always narrow navigator.share
-          await navigator.share({ title: "Qonvo gesprek", url });
-          return;
-        }
-
-        await navigator.clipboard.writeText(url);
-        toast.success("Embed link gekopieerd.");
+        if (url) setEmbedLink(url);
       } catch {
-        toast.error("Delen/kopiëren lukt niet. Controleer je browser permissies.");
+        toast.error("Embed link ophalen lukt niet. Probeer het opnieuw.");
+      }
+    });
+  }
+
+  function onCopyEmbedLink() {
+    startTransition(async () => {
+      try {
+        const url = embedLink ?? embedUrl ?? (await ensureEmbedUrl());
+        if (!url) return;
+        await navigator.clipboard.writeText(url);
+        toast.success("Link gekopieerd.");
+      } catch {
+        toast.error("Kopiëren lukt niet. Controleer je browser permissies.");
       }
     });
   }
@@ -178,9 +188,9 @@ export function ConversationHeaderActions(props: Props) {
           type="button"
           variant="outline"
           size="icon"
-          onClick={onShareEmbed}
+          onClick={onOpenEmbed}
           disabled={isPending || !publicEmbedEnabled}
-          aria-label="Embed link delen of kopiëren"
+          aria-label="Embed link"
           title={publicEmbedEnabled ? "Embed link delen/kopiëren" : "Publieke embed staat uit"}
         >
           <Link2 className="h-4 w-4" />
@@ -210,6 +220,25 @@ export function ConversationHeaderActions(props: Props) {
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+
+      <Dialog open={embedOpen} onOpenChange={setEmbedOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Embed link</DialogTitle>
+            <DialogDescription>Deel deze link of gebruik hem in een iframe.</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-2">
+            <Input readOnly value={embedLink ?? ""} placeholder="Embed link ophalen…" className="font-mono text-xs" />
+            <Button type="button" size="sm" onClick={onCopyEmbedLink} disabled={isPending || !embedLink}>
+              Kopieer link
+            </Button>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Tip: stel “Toegestane domeinen” in bij Instellingen om misbruik te voorkomen.
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="sm:max-w-lg">

@@ -4,8 +4,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import type { ChatMessage } from "@/components/chat/types";
 import { PageHeader } from "@/components/app/PageHeader";
-import { SectionCard } from "@/components/app/SectionCard";
-import { Input } from "@/components/ui/input";
 import { ConversationHeaderActions } from "@/components/conversations/ConversationHeaderActions";
 
 export default async function ConversationChatPage({
@@ -54,8 +52,6 @@ export default async function ConversationChatPage({
     .eq("active", true)
     .maybeSingle();
 
-  const embedUrl = embedTokenRow?.token ? `/embed/${embedTokenRow.token}` : null;
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -76,23 +72,6 @@ export default async function ConversationChatPage({
           </>
         }
       />
-
-      {conversation.public_embed_enabled && embedUrl ? (
-        <SectionCard
-          title="Embed (publiek)"
-          description="Deze chat is toegankelijk zonder login. Credits worden afgeschreven van jouw organisatie."
-        >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Embed URL</p>
-              <Input readOnly value={embedUrl} />
-              <p className="text-xs text-muted-foreground">
-                Gebruik deze URL in een iframe. Tip: stel “Toegestane domeinen” in bij het starten van het gesprek.
-              </p>
-            </div>
-          </div>
-        </SectionCard>
-      ) : null}
 
       <ChatPanel conversationId={conversationId} initialMessages={initialMessages} />
     </div>
