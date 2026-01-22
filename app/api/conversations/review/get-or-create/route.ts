@@ -6,7 +6,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 const BodySchema = z.object({
-  conversationId: z.string().uuid()
+  conversationId: z.string().uuid(),
+  force: z.boolean().optional()
 });
 
 const ReviewSchema = z.object({
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
   }
 
   // Return existing review if present
+  const force = Boolean(parsed.data.force);
   const { data: existingReview, error: existingError } = await admin
     .from("conversation_reviews")
     .select("id, review_json, feedback_summary, is_passed, created_at")
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingError) return jsonError(500, "Beoordeling laden lukt niet.");
-  if (existingReview?.review_json) {
+  if (!force && existingReview?.review_json) {
     return NextResponse.json(
       {
         ok: true,
@@ -86,6 +88,11 @@ export async function POST(request: Request) {
       },
       { status: 200 }
     );
+  }
+
+  if (force && existingReview?.id) {
+    // Replace the stored review (final review should reflect the full conversation).
+    await admin.from("conversation_reviews").delete().eq("id", existingReview.id);
   }
 
   // Build a messages blob for the review prompt

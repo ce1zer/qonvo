@@ -109,7 +109,36 @@ export function ChatPanel({
     // If the assistant ends the conversation (👋), immediately disable the composer.
     if (assistantMessage.includes("👋")) {
       setEnded(true);
-      router.refresh(); // will fetch inactive status + show review when available
+      router.refresh(); // fetch inactive status
+
+      // Trigger final review generation (force refresh) now that the conversation is ending.
+      startTransition(async () => {
+        for (let attempt = 0; attempt < 6; attempt++) {
+          const res = await fetch("/api/conversations/review/get-or-create", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ conversationId, force: true })
+          }).catch(() => null);
+
+          const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+
+          // Conversation may still be active for a moment; retry briefly.
+          if (res?.status === 409) {
+            await new Promise((r) => setTimeout(r, 300));
+            continue;
+          }
+
+          if (!res || !res.ok || !json?.ok) {
+            toast.error(json?.message ?? "Beoordeling ophalen lukt niet.");
+            return;
+          }
+
+          toast.success("Beoordeling beschikbaar.");
+          router.refresh();
+          return;
+        }
+      });
     }
   }
 
