@@ -237,6 +237,14 @@ export async function POST(request: Request) {
 
   if (assistantInsertError) return jsonError(500, "Opslaan is niet gelukt. Probeer het opnieuw.");
 
+  // End the conversation when the agent signals completion (👋).
+  if (assistantMessage.includes("👋")) {
+    const { error: endError } = await admin.from("conversations").update({ status: "inactive" }).eq("id", conversation.id);
+    if (endError) {
+      console.error("[embed.chat.send] failed to mark conversation inactive", { endError, conversationId: conversation.id });
+    }
+  }
+
   return NextResponse.json({ ok: true, assistantMessage, creditsBalance: newBalance as number });
 }
 

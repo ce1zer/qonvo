@@ -3,8 +3,6 @@
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-
 type Review = {
   feedback?: Array<{ question: string; answer: string }>;
   feedbackSummary?: string;
@@ -13,10 +11,12 @@ type Review = {
 
 export function ConversationReviewPanel({
   conversationId,
-  initialReview
+  initialReview,
+  isInactive
 }: {
   conversationId: string;
   initialReview: Review | null;
+  isInactive: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [review, setReview] = useState<Review | null>(initialReview);
@@ -25,7 +25,10 @@ export function ConversationReviewPanel({
     setReview(initialReview);
   }, [initialReview]);
 
-  function generate() {
+  useEffect(() => {
+    if (!isInactive) return;
+    if (review) return;
+    // Auto-pull review once the conversation is inactive.
     startTransition(async () => {
       const res = await fetch("/api/conversations/review/get-or-create", {
         method: "POST",
@@ -36,24 +39,24 @@ export function ConversationReviewPanel({
 
       const json = (await res?.json().catch(() => null)) as { ok?: boolean; review?: Review; message?: string } | null;
       if (!res || !res.ok || !json?.ok) {
+        // Don't spam errors; just show a single toast and allow refresh to retry.
         toast.error(json?.message ?? "Beoordeling ophalen lukt niet.");
         return;
       }
 
       setReview(json.review ?? null);
-      toast.success("Beoordeling bijgewerkt.");
     });
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInactive, conversationId]);
 
   if (!review) {
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Nog geen beoordeling beschikbaar. Zodra het gesprek eindigt (👋) wordt de beoordeling automatisch opgehaald.
+          {isInactive
+            ? "Beoordeling wordt berekend…"
+            : "Beoordeling verschijnt automatisch zodra het gesprek is afgelopen (👋)."}
         </p>
-        <Button type="button" variant="outline" size="sm" onClick={generate} disabled={isPending}>
-          {isPending ? "Bezig..." : "Genereer beoordeling"}
-        </Button>
       </div>
     );
   }
@@ -79,11 +82,7 @@ export function ConversationReviewPanel({
         </div>
       ) : null}
 
-      <div>
-        <Button type="button" variant="outline" size="sm" onClick={generate} disabled={isPending}>
-          {isPending ? "Bezig..." : "Ververs beoordeling"}
-        </Button>
-      </div>
+      {isPending ? <p className="text-xs text-muted-foreground">Bezig met ophalen…</p> : null}
     </div>
   );
 }

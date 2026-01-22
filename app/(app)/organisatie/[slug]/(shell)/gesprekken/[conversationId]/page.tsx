@@ -60,6 +60,9 @@ export default async function ConversationChatPage({
     .eq("conversation_id", conversationId)
     .maybeSingle();
 
+  const hasReview = Boolean(reviewRow?.review_json);
+  const isInactive = conversation.status !== "active";
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -81,14 +84,17 @@ export default async function ConversationChatPage({
         }
       />
 
-      <SectionCard title="Beoordeling" description="Feedback op je gesprek. Wordt automatisch opgehaald na 👋.">
-        <ConversationReviewPanel
-          conversationId={conversationId}
-          initialReview={(reviewRow?.review_json as unknown as any) ?? null}
-        />
-      </SectionCard>
+      {isInactive || hasReview ? (
+        <SectionCard title="Beoordeling" description="Feedback op je gesprek. Wordt automatisch opgehaald na 👋.">
+          <ConversationReviewPanel
+            conversationId={conversationId}
+            initialReview={(reviewRow?.review_json as unknown as any) ?? null}
+            isInactive={isInactive}
+          />
+        </SectionCard>
+      ) : null}
 
-      <ChatPanel conversationId={conversationId} initialMessages={initialMessages} isInactive={conversation.status !== "active"} />
+      <ChatPanel conversationId={conversationId} initialMessages={initialMessages} isInactive={isInactive} />
     </div>
   );
 }

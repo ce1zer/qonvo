@@ -215,6 +215,18 @@ export async function POST(request: Request) {
     return jsonError(500, "Opslaan is niet gelukt. Probeer het opnieuw.");
   }
 
+  // End the conversation when the agent signals completion (👋).
+  if (assistantMessage.includes("👋")) {
+    const { error: endError } = await supabase
+      .from("conversations")
+      .update({ status: "inactive" })
+      .eq("id", conversation.id)
+      .eq("organization_id", profile.organization_id);
+    if (endError) {
+      console.error("[chat.send] failed to mark conversation inactive", { endError, conversationId: conversation.id });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     assistantMessage,

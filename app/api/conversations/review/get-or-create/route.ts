@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   // Ensure tenant ownership
   const { data: conversation, error: convError } = await admin
     .from("conversations")
-    .select("id, organization_id")
+    .select("id, organization_id, status")
     .eq("id", parsed.data.conversationId)
     .maybeSingle();
 
@@ -61,6 +61,10 @@ export async function POST(request: Request) {
   if (!conversation) return jsonError(404, "Gesprek niet gevonden.");
   if (conversation.organization_id !== profile.organization_id && profile.role !== "platform_admin") {
     return jsonError(403, "Geen toegang.");
+  }
+  // Reviews are only allowed after the conversation has ended.
+  if (conversation.status === "active") {
+    return jsonError(409, "Beoordeling is pas beschikbaar nadat het gesprek is afgelopen (👋).");
   }
 
   // Return existing review if present

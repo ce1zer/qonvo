@@ -27,13 +27,14 @@ export function EmbedChatPanel({
   const [isTyping, setIsTyping] = useState(false);
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [ended, setEnded] = useState(false);
 
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
 
   async function send(userMessage: string) {
-    if (isInactive) {
+    if (isInactive || ended) {
       toast.error("Dit gesprek is inactief.");
       return;
     }
@@ -109,9 +110,16 @@ export function EmbedChatPanel({
 
     setMessages((prev) => {
       const next = prev.map((m) => (m.id === tempId ? { ...m, status: "sent" as const } : m));
-      return [...next, { id: makeTempId(), role: "assistant", content: assistantMessage, createdAt: new Date().toISOString() }];
+      return [
+        ...next,
+        { id: makeTempId(), role: "assistant", content: assistantMessage, createdAt: new Date().toISOString() }
+      ];
     });
     setIsTyping(false);
+
+    if (assistantMessage.includes("👋")) {
+      setEnded(true);
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -147,9 +155,9 @@ export function EmbedChatPanel({
         onChange={setText}
         onSubmit={onSubmit}
         onKeyDown={onKeyDown}
-        disabled={isPending || isInactive || (creditsBalance !== null && creditsBalance <= 0)}
+        disabled={isPending || isInactive || ended || (creditsBalance !== null && creditsBalance <= 0)}
         helperText={
-          isInactive ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
+          isInactive || ended ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
         }
       />
     </div>

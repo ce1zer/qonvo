@@ -28,14 +28,14 @@ export function ChatPanel({
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [reviewTriggered, setReviewTriggered] = useState(false);
+  const [ended, setEnded] = useState(false);
 
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
 
   async function send(userMessage: string) {
-    if (isInactive) {
+    if (isInactive || ended) {
       toast.error("Dit gesprek is inactief.");
       return;
     }
@@ -106,26 +106,10 @@ export function ChatPanel({
     });
     setIsTyping(false);
 
-    // If the assistant ends the conversation (👋), trigger a review pull (Pattern A).
-    if (!reviewTriggered && typeof assistantMessage === "string" && assistantMessage.includes("👋")) {
-      setReviewTriggered(true);
-      startTransition(async () => {
-        const res = await fetch("/api/conversations/review/get-or-create", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ conversationId })
-        }).catch(() => null);
-
-        const json = (await res?.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
-        if (!res || !res.ok || !json?.ok) {
-          toast.error(json?.message ?? "Beoordeling ophalen lukt niet.");
-          return;
-        }
-
-        toast.success("Beoordeling beschikbaar.");
-        router.refresh();
-      });
+    // If the assistant ends the conversation (👋), immediately disable the composer.
+    if (assistantMessage.includes("👋")) {
+      setEnded(true);
+      router.refresh(); // will fetch inactive status + show review when available
     }
   }
 
@@ -162,9 +146,9 @@ export function ChatPanel({
         onChange={setText}
         onSubmit={onSubmit}
         onKeyDown={onKeyDown}
-        disabled={isPending || creditsBalance <= 0 || isInactive}
+        disabled={isPending || creditsBalance <= 0 || isInactive || ended}
         helperText={
-          isInactive ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
+          isInactive || ended ? "Dit gesprek is inactief." : isTyping ? "AI is aan het typen…" : "Shift+Enter voor een nieuwe regel."
         }
       />
     </div>
