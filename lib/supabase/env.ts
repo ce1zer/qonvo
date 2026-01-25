@@ -8,6 +8,7 @@ const EnvSchema = z.object({
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_ANON_KEY: z.string().min(1).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_KEY: z.string().min(1).optional(),
   N8N_WEBHOOK_URL: z.string().url().optional(),
   N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
   INITIAL_ORGANIZATION_CREDITS: z
@@ -49,12 +50,14 @@ export function getSupabaseEnv() {
 
   const supabaseUrl = parsed.data.NEXT_PUBLIC_SUPABASE_URL ?? parsed.data.SUPABASE_URL;
   const supabaseAnonKey = parsed.data.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? parsed.data.SUPABASE_ANON_KEY;
+  const supabaseServiceRoleKey =
+    parsed.data.SUPABASE_SERVICE_ROLE_KEY ?? parsed.data.SUPABASE_SERVICE_KEY;
 
   // superRefine guarantees these exist, but keep runtime safety.
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Invalid environment variables for Supabase.");
   }
 
-  return { ...parsed.data, supabaseUrl, supabaseAnonKey };
+  return { ...parsed.data, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey };
 }
 

@@ -16,7 +16,7 @@ const SignupSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const env = getSupabaseEnv();
-  if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!env.supabaseServiceRoleKey) {
     return NextResponse.json(
       { ok: false, message: "Registreren is nu niet mogelijk omdat de server nog niet is geconfigureerd." },
       { status: 500 }
